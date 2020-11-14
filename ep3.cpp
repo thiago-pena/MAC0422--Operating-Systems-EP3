@@ -6,6 +6,8 @@
     // readline
 #include <readline/history.h>
     // add_history
+#include <fstream>
+    // ofstream -> write
 using namespace std;
 
 #define DEBUG 1
@@ -14,6 +16,7 @@ using namespace std;
 string charToString(char *a);
 
 int main() {
+    char fileName[MAXLEN];
     char prompt[MAXLEN];
     using_history();
     strcpy(prompt, "teste prompt > ");
@@ -35,6 +38,7 @@ int main() {
 
         // mount arquivo
         if (strcmp(c, "mount") == 0) {
+            strcpy(fileName, arg1);
             cout << "1" << endl;
         }
         // cp origem destino
@@ -80,6 +84,24 @@ int main() {
         // sai
         else if (strcmp(c, "sai") == 0) {
             cout << "12" << endl;
+            break;
+        }
+        else if (strcmp(c, "debug_write") == 0) {
+            ofstream myfile;
+            myfile.open (arg1);
+            myfile << "Writing this to a file.\n";
+            myfile.close();
+        }
+        else if (strcmp(c, "debug_open") == 0) {
+            string line;
+            ifstream myfile (arg1);
+            if (myfile.is_open()) {
+                while (getline(myfile, line)) {
+                    cout << line << '\n';
+                }
+                myfile.close();
+            }
+            else cout << "Unable to open file";
         }
         else
             cout << "Comando não reconhecido." << endl;
