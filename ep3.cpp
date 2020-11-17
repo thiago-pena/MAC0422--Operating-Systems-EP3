@@ -7,19 +7,27 @@
 #include <readline/history.h>
     // add_history
 #include <fstream>
+#include <sstream>
     // ofstream -> write
-using namespace std;
-
-#define DEBUG 1
-#define MAXLEN 255
+#include "diretorio.hpp"
+    // Estrutura de dados
+#include "tools.hpp"
+   // Ferramentas simples
+#include "parser.cpp"
+  // Parser
 
 string charToString(char *a);
+void mount(FILE *fp, const char *arg1);
+
+
+int FAT[FATSIZE];
 
 int main() {
     char fileName[MAXLEN];
     char prompt[MAXLEN];
+
     using_history();
-    strcpy(prompt, "teste prompt > ");
+    strcpy(prompt, "[ep3]:");
     while (true) {
         char *strChar = readline(prompt);
         add_history(strChar);
@@ -38,7 +46,15 @@ int main() {
 
         // mount arquivo
         if (strcmp(c, "mount") == 0) {
-            strcpy(fileName, arg1);
+            FILE *fp;
+            if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
+                fclose (fp);
+                Parser parser(arg1,1);
+                return 1;
+            } else {
+                Parser parser(arg1,0);
+            }
+
             cout << "1" << endl;
         }
         // cp origem destino
@@ -106,14 +122,4 @@ int main() {
         else
             cout << "Comando não reconhecido." << endl;
     }
-}
-
-// Recebe um char* e converte para string
-string charToString(char *a)
-{
-    string s = "";
-    int size = strlen(a);
-    for (int i = 0; i < size; i++)
-        s = s + a[i];
-    return s;
 }
