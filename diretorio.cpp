@@ -9,35 +9,47 @@
 
 #include "diretorio.hpp"
 #include "tools.hpp"
-#include "parser.cpp"
 
+DirTree::DirTree() { //inicializa árvore com o root/
+    root = new dir;
+    root->localFAT = 0;
+    root->dotdotBar = nullptr;
 
-class DirTree {
+}
 
-  private:
-    dir *root;
+DirTree::~DirTree() { // Vare a árvore estilo e-q-d(s)
+    delete root;
+}
 
-  public:
-    DirTree() { //inicializa árvore com o root/
-        root = new dir;
-        root->name = "root/";
-        root->localFAT = 0;
-
-        // int data = datainfo(); //Coleta data do localtime
-        // root->createdAt = data;
-        // root->updatedAt = data;
-        // root->accessedAt = data;
+void DirTree::dirRootUpdate(string name, string lFat, string cAt, string updatedAt, string accessedAt)
+{
+    root->name = name;
+    root->localFAT = atol(lFat.c_str());
+    root->createdAt = atol(cAt.c_str());
+    root->updatedAt = atol(updatedAt.c_str());
+    root->accessedAt = atol(accessedAt.c_str());
+    if (DEBUG) {
+      cout << "Root/>nome: " << root->name << '\n';
+      cout << "Root/>localFAT: " << root->localFAT << '\n';
+      cout << "Root/>createdAt: " << root->createdAt << '\n';
+      cout << "Root/>updatedAt: " << root->updatedAt << '\n';
+      cout << "Root/>accessedAt: " << root->accessedAt << '\n';
     }
+}
 
-    ~DirTree() { // Vare a árvore estilo e-q-d(s)
+dir* DirTree::searchDir(string name)
+{
+  if (root->name == name) {
+      return root;
+  } else {
+      return searchDirR(name, root->dotBar[0]);
+  }
+}
 
-    }
-
-    int insereArquivo(string palavra, dir atual)
-    {
-
-    }
-};
+dir* DirTree::searchDirR(string name, dir *a)
+{
+    if(!a) return nullptr;
+}
 
 
 #endif

@@ -27,14 +27,5 @@ int clockinfo()
           (tm.tm_sec));
 }
 
-// Recebe um char* e converte para string
-string charToString(char *a)
-{
-    string s = "";
-    int size = strlen(a);
-    for (int i = 0; i < size; i++)
-        s = s + a[i];
-    return s;
-}
 
 #endif

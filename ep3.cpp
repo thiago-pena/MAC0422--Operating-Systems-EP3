@@ -47,12 +47,15 @@ int main() {
         // mount arquivo
         if (strcmp(c, "mount") == 0) {
             FILE *fp;
+
+            DirTree dirArv;
+
             if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
                 fclose (fp);
-                Parser parser(arg1,1);
+                Parser parser(arg1, 1, dirArv);
                 return 1;
             } else {
-                Parser parser(arg1,0);
+                Parser parser(arg1, 0, dirArv);
             }
 
             cout << "1" << endl;
