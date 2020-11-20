@@ -9,12 +9,12 @@
 #include <fstream>
 #include <sstream>
     // ofstream -> write
-#include "diretorio.hpp"
-    // Estrutura de dados
+#include <vector>
+    // vetor da STL
 #include "tools.hpp"
-   // Ferramentas simples
-#include "parser.cpp"
-  // Parser
+    // Ferramentas simples
+#include "driver.hpp"
+    // Parser & Writer
 
 string charToString(char *a);
 void mount(FILE *fp, const char *arg1);
@@ -25,6 +25,7 @@ int FAT[FATSIZE];
 int main() {
     char fileName[MAXLEN];
     char prompt[MAXLEN];
+    Driver driver; // inicializa o driver
 
     using_history();
     strcpy(prompt, "[ep3]:");
@@ -48,14 +49,11 @@ int main() {
         if (strcmp(c, "mount") == 0) {
             FILE *fp;
 
-            DirTree dirArv;
-
             if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
                 fclose (fp);
-                Parser parser(arg1, 1, dirArv);
-                return 1;
+                driver.mount(arg1, 1);
             } else {
-                Parser parser(arg1, 0, dirArv);
+                driver.mount(arg1, 0);
             }
 
             cout << "1" << endl;
@@ -74,6 +72,7 @@ int main() {
         }
         // cat arquivo
         else if (strcmp(c, "cat") == 0) {
+            driver.SearchFile(arg1);
             cout << "5" << endl;
         }
         // touch arquivo

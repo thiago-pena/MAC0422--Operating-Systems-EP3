@@ -17,9 +17,7 @@
 
 using namespace std;
 
-// Coleta informações de data e transforma em um int
-int datainfo();
-int clockinfo();
-string charToString(char *a);
+// Coleta informações de data e transforma em um unsigned long int
+unsigned long long datainfo();
 
 #endif
