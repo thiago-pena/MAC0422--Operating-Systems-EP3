@@ -325,7 +325,6 @@ void Driver::copy(string origem, string destino)
     // std::ifstream arqOrigem("/home/bob/stuff.txt");
 
     ifstream arqOrigem(origem);
-    // ifstream arqOrigem("/home/pena/Documents/SO-ep3/so-ep3/arquivos_para_cp/teste1.txt");
     fstream fs(diskName);
 
     if (!arqOrigem.is_open()) {
@@ -334,12 +333,7 @@ void Driver::copy(string origem, string destino)
     }
     else
         cout << "Arquivo " << origem << " foi aberto com sucesso." << endl;
-    // v1
-    // joga tudo para uma string -> enfia o conteúdo no bloco 10 temporariamente
-    // faz no root apenas (depois, incluir subdiretórios)
-    // int block = 10;
-    // fs.seekg(ROOT + block*BLOCKSIZE, ios::beg);
-    // fs << "Teste pena";
+
     string buffer;
     getline(arqOrigem, buffer);
     cout << "Teste buffer: " << buffer << endl;
@@ -390,33 +384,10 @@ void Driver::copy(string origem, string destino)
     fs << bloco;
     fat[k] = -1; // Marca o fat como final do arquivo
     fsm[k] = 1; // Marca o bloco agora em uso no gerenciamento de espaço livre
-
-    /*
-    out << s.substr(0,5) << endl;
-    cout << s << endl;
-    s.erase(0, 5);
-    cout << s.substr(0,5) << endl;
-    cout << s << endl;
-    */
-    /*
-    string name;
-    int localFAT;
-    int size;
-    unsigned long long createdAt;
-    unsigned long long updatedAt;
-    unsigned long long accessedAt;
-
-    */
-
-
-    // cout << buffer << endl;
-
-
-    // v2
-    // encontra primeiro bloco livre (fazer uma função para isso)
-        // primeiro busca no free space management
-        // depois, verifica se primeiro caractere é "|" ????
     // Escrever no Root os arquivos inseridos e o bloco inicial de cada um
+    fs.seekg(ROOT, ios::beg); // Seek base do Root
+
+    // Preparar para funcionar em outros diretórios
 }
 
 // Retorna o primeiro bloco livre do gerenciamento de espaço livre
