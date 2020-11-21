@@ -5,7 +5,7 @@
 #define BITMAP 0
 #define FAT 40
 #define ROOT 100
-#define MAXLINE 255
+#define MAXLEN 255
 #define BLOCKSIZE 100
 
 using namespace std;
@@ -35,7 +35,7 @@ int main (int argc, char** argv)
     myFile.seekg(ROOT + 10*BLOCKSIZE, ios::beg); // Le o bloco 10
 
     // Read the next 5 characters from the file into a buffer
-    char buffer[MAXLINE];
+    char buffer[MAXLEN];
     myFile.read(buffer, 10);
 
     // End the buffer with a null terminating character

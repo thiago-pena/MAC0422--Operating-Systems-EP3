@@ -9,7 +9,7 @@
 
 #include "tools.hpp"
 
-extern int FAT[FATSIZE];
+extern int fat[NUMBLOCKS];
 
 typedef struct diretorio dir;
 typedef struct arquivo arq;
@@ -59,6 +59,7 @@ class Driver {
     dir *SearchDir(string name);//EM PROCESSO
     //cria um diretorio no caminho especificado
     void mkDir(string dirName);//EM PROCESSO
+    void copy(string origem, string destino); // EM PROCESSO (Pena)
 
 };
 

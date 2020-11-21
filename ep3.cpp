@@ -19,11 +19,11 @@
 void mount(FILE *fp, const char *arg1);
 
 
-int FAT[FATSIZE];
+int fat[NUMBLOCKS];
+int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS = false;
 
 int main() {
-    char fileName[MAXLEN];
     char prompt[MAXLEN];
     Driver driver; // inicializa o driver
 
@@ -64,11 +64,11 @@ int main() {
         }
         // cp origem destino
         else if (strcmp(c, "cp") == 0) {
-            cout << "2" << endl;
+            driver.copy(arg1, arg2);
         }
         // mkdir diretorio
         else if (strcmp(c, "mkdir") == 0) {
-            
+
             cout << "3" << endl;
         }
         // rmdir diretorio
@@ -103,27 +103,24 @@ int main() {
         // umount
         else if (strcmp(c, "umount") == 0) {
             mountedFS = false;
+            // dar free? ou preparar para poder montar outro arquivo
         }
         // sai
         else if (strcmp(c, "sai") == 0) {
             break;
         }
-        else if (strcmp(c, "debug_write") == 0) {
-            ofstream myfile;
-            myfile.open (arg1);
-            myfile << "Writing this to a file.\n";
-            myfile.close();
+        else if (strcmp(c, "fat") == 0) {
+            for (int i = 0; i < NUMBLOCKS; i++)
+                cout << fat[i] << " ";
+            cout << endl;
         }
-        else if (strcmp(c, "debug_open") == 0) {
-            string line;
-            ifstream myfile (arg1);
-            if (myfile.is_open()) {
-                while (getline(myfile, line)) {
-                    cout << line << '\n';
-                }
-                myfile.close();
-            }
-            else cout << "Unable to open file";
+        else if (strcmp(c, "fsm") == 0) {
+            for (int i = 0; i < NUMBLOCKS; i++)
+                cout << fsm[i] << " ";
+            cout << endl;
+        }
+        else if (strcmp(c, "teste") == 0) {
+            cout << "Para criar funções de debug." << endl;
         }
         else
             cout << "Comando não reconhecido." << endl;

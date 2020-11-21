@@ -1,15 +1,24 @@
-*20 blocos (preciso de 3 dígitos)
-*Tamanho do bloco: 100 caracteres
-bitmap: 20 + 20 - 1 = 39 caracteres
+*NUMBLOCKS = 20 blocos
+*BLOCKSIZE = 100 // Tamanho do bloco: 100 caracteres
+
+bitmap: NUMBLOCKS 20 = 20 caracteres
     Base: 0
-    Limite: 39
-fat: 3*20 + 1 = 59 caracteres
-    Base: 40
-    Limite: 40 + 59 = 99
-root
-    Base: 100
-    Limite: 200
+    Limite: NUMBLOCKS = 20
+
+fat: 6*NUMBLOCKS - 1 = 6*20 -1 = 119 caracteres
+    Base: NUMBLOCKS + 1 = 21
+    Limite: (NUMBLOCKS + 1) + (6*NUMBLOCKS - 1) = 7*NUMBLOCKS = 140
+
+root (Bloco 0)
+    Base: ROOT = 7*NUMBLOCKS + 1 = 141
+    Limite: (7*NUMBLOCKS + 1) + (BLOCKSIZE - 1) = 141 + 99 = 240
+
+Bloco k
+    Base: ROOT + k*BLOCKSIZE = 141 + 100*k
+    Limite: ROOT + (k + 1)*BLOCKSIZE - 1 = 141 + 100*(k + 1) - 1 = 240 + 100*k
+
 
 
 - remover bitmap último pipe
 - remover bitmap último fat
+- não preciso de separador no free space mngmt

@@ -15,6 +15,12 @@
 #define MAXLEN 255
 #define FATSIZE 16
 
+#define NUMBLOCKS 20
+#define BITMAP 0
+#define FATPOS 21
+#define ROOT 141
+#define BLOCKSIZE 100
+
 using namespace std;
 
 // Coleta informações de data e transforma em um unsigned long int

@@ -7,7 +7,8 @@
 #include "tools.hpp"
 
 
-extern int FAT[FATSIZE];
+extern int fat[NUMBLOCKS];
+extern int fsm[NUMBLOCKS];
 
 Driver::Driver() {
     if (DEBUG) printf("Driver inicializado!\n");
@@ -34,18 +35,30 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
             printf("Falha na leitura de %s\n", nomeArq);
         }
 
-        getline(inFile, linha); // pula free space
+
+        // Gerencimanto de Espaço Livre
+        getline(inFile, linha);
+        cout << "Teste FSM\n";
+        cout << linha << endl;
+        cout << linha[0] << endl;
+        cout << linha[2] << endl;
+        for (int i = 0; i < NUMBLOCKS; i++)
+            fsm[i] = linha[i] - '0';
+        cout << "FIM teste\n";
 
         // FAT______________________________________________________________
         getline(inFile, linha);
         istringstream iss(linha);
-        for (int i = 0; i < FATSIZE; i++) {
+        for (int i = 0; i < NUMBLOCKS; i++) {
             getline( iss, palavra , '|');
-            FAT[i] = atoi(palavra.c_str());
+            fat[i] = atoi(palavra.c_str());
         }
+
+
+
         if (DEBUG) {
           printf("memory FAT: [");
-          for (int i = 0; i < FATSIZE; i++) printf(" %02d", FAT[i]);
+          for (int i = 0; i < NUMBLOCKS; i++) printf(" %02d", fat[i]);
           printf("]\n");
         }
         inFile.close();
@@ -53,30 +66,40 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
 
     } else { //Cria arquivo.txt caso ele não exista
         FILE *fp;
-        fp = fopen (nomeArq,"w");
+        fp = fopen (nomeArq, "w");
         if(DEBUG) printf("Arquivo %s criado.\n", nomeArq);
         if (fp == NULL) {
             printf("Falha na criação de %s\n", nomeArq);
             fclose (fp);
         }
-        for (int i = 0; i < FATSIZE; i++) fprintf(fp,"0|"); //free space
+
+        //free space
+        fprintf(fp,"1");
+        for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp,"0");
         fprintf(fp,"\n");
-        for (int i = 0; i < FATSIZE; i++) {
-            FAT[i] = 0; //Carrega FAT na memória
-            fprintf(fp,"0|"); //Cria FAT registro
-        }
-        fprintf(fp,"\n");
+
+        //Cria FAT registro
+        fprintf(fp,"-0001|");
+        for (int i = 0; i < NUMBLOCKS - 2; i++) fprintf(fp,"00000|");
+        fprintf(fp,"00000\n");
+
+        for (int i = 0; i < NUMBLOCKS; i++) fat[i] = 0; //Carrega FAT na memória
 
         // para registro de data https://linux.die.net/man/3/localtime
         time_t t = time(NULL);
         struct tm tm = *localtime(&t);
 
         unsigned long long dataInt = datainfo();
-        fprintf(fp,"root/|0|%lld|%lld|%lld|root/|0|\n", dataInt, dataInt, dataInt);
+        // fprintf(fp,"root/|0|%lld|%lld|%lld|root/|0|\n", dataInt, dataInt, dataInt);
+        fprintf(fp, "root/|0|%lld|%lld|%lld|root/|0|", dataInt, dataInt, dataInt);
+        int len = strlen("root/|0|20201121084741|20201121084741|20201121084741|root/|0|");
+        for (int i = 0; i < 100 - len - 1; i++)
+            fprintf(fp, "@");
+        fprintf(fp, "\n");
 
         fclose (fp);
-        fp = fopen (nomeArq,"a"); //ao invés de pular é melhor reabrir e append
-        for (int i = 0; i < FATSIZE; i++) fprintf(fp,"|\n");
+        fp = fopen (nomeArq, "a"); //ao invés de pular é melhor reabrir e append
+        for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp,"|\n"); // NUMBLOCKS - 1 pq o root já é um bloco
         fclose (fp);
         if (DEBUG) std::cout << " Terminou mount" << '\n';
     }
@@ -102,7 +125,7 @@ arq *Driver::SearchFile(string name)
   getline (disk, linha); //Pula freespace e FAT
   getline (disk, linha);
 
-  for (int i = 0; i < FATSIZE; i++) {
+  for (int i = 0; i < NUMBLOCKS; i++) {
       getline (disk, linha);
       istringstream iss(linha);
       getline(iss, palavra, '|');
@@ -127,7 +150,7 @@ arq *Driver::SearchFile(string name)
           file->content.push_back(conteudo);
           disk.close();
 
-          int nFat = FAT[file->localFAT];
+          int nFat = fat[file->localFAT];
           while (nFat != -1){
               disk.open(diskName);   //reabre para procura;
               getline (disk, linha); //Pula freespace e FAT
@@ -137,7 +160,7 @@ arq *Driver::SearchFile(string name)
               getline(iss, conteudo, '|'); //Pula primeiro pipeline
               getline(iss, conteudo, '|');
               file->content.push_back(conteudo);
-              nFat = FAT[nFat]; //anda o número de FAT;
+              nFat = fat[nFat]; //anda o número de FAT;
               disk.close(); //fecha disco
           }
 
@@ -177,7 +200,7 @@ int Driver::whereIsFree()
   disk.open(diskName);
   getline (disk, linha); //Pula freespace e FAT
   getline (disk, linha);
-  for (int i = 0; i < FATSIZE; i++) {
+  for (int i = 0; i < NUMBLOCKS; i++) {
     getline (disk, linha);
     istringstream iss(linha);
     getline(iss, token1, '|');
@@ -264,4 +287,76 @@ dir *Driver::dirStruct(string linha)
       l = token1.length();
   }
   return diretorio;
+}
+
+// cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
+// origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
+// arquivos simulado a cópia de origem será salva em destino. Tanto origem quanto destino
+// devem ser informados com o caminho completo tanto dentro do sistema de arquivos real quanto no
+// simulado 1 . Esse comando será executado apenas para copiar arquivos em texto puro.
+void Driver::copy(string origem, string destino)
+{
+    // exemplo
+    // origem: ~/Documents/SO-ep3/so-ep3/arquivos_para_cp/teste1.txt
+    // destino: /
+    // std::ifstream arqOrigem("/home/bob/stuff.txt");
+
+    ifstream arqOrigem(origem);
+    // ifstream arqOrigem("/home/pena/Documents/SO-ep3/so-ep3/arquivos_para_cp/teste1.txt");
+    fstream fs("arquivo2");
+
+    if (!arqOrigem.is_open()) {
+        cout << "[ERRO] Não foi possível abrir o arquivo " << origem << endl;
+        return;
+    }
+    // v1
+    // joga tudo para uma string -> enfia o conteúdo no bloco 10 temporariamente
+    // faz no root apenas (depois, incluir subdiretórios)
+    // int block = 10;
+    // fs.seekg(ROOT + block*BLOCKSIZE, ios::beg);
+    // fs << "Teste pena";
+    string buffer;
+    getline(arqOrigem, buffer);
+    cout << "Teste buffer: " << buffer << endl;
+    //arquivo1.txt|-1|8|162115102020|162215102020|162215102020|dir1/|conteudo
+    // arquivo1.txt|-1|@|123|456|789
+
+    // busca fat do diretório de destino (por enquanto é o root)
+    // int blocoDir = 0;
+
+    // Encontra primeiro bloco livre
+    int k;
+    while (fsm[k] != 0)
+        k++;
+
+    fsm[k] = 1; // Marca o bloco em uso no gerenciamento de espaço livre
+    fat[k] = -1; // Marca o fat como final do arquivo
+    string nomeDestino = destino;
+    string size = "666";
+    string createdAt = "123";
+    string updatedAt = "456";
+    string accessedAt = "789";
+    string bloco = nomeDestino + "|" + "-1" + "|" + size;
+    bloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
+    bloco += "|" + buffer;
+    cout << bloco << endl;
+
+    /*
+    string name;
+    int localFAT;
+    int size;
+    unsigned long long createdAt;
+    unsigned long long updatedAt;
+    unsigned long long accessedAt;
+
+    */
+
+
+    // cout << buffer << endl;
+
+
+    // v2
+    // encontra primeiro bloco livre (fazer uma função para isso)
+        // primeiro busca no free space management
+        // depois, verifica se primeiro caractere é "|" ????
 }

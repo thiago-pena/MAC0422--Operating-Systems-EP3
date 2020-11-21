@@ -9,7 +9,7 @@
 
 #include "tools.hpp"
 
-extern int FAT[FATSIZE];
+extern int fat[NUMBLOCKS];
 
 typedef struct arquivo arq;
 struct arquivo { // Estrutura de arquivo
