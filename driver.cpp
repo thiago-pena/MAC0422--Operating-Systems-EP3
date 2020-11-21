@@ -10,6 +10,9 @@
 extern int fat[NUMBLOCKS];
 extern int fsm[NUMBLOCKS];
 
+int firstFit();
+int nextFit(int b);
+
 Driver::Driver() {
     if (DEBUG) printf("Driver inicializado!\n");
 }
@@ -78,12 +81,17 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
         for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp,"0");
         fprintf(fp,"\n");
 
+        for (int i = 1; i < NUMBLOCKS; i++) fsm[i] = 0; //Carrega FSM na memória
+        fsm[0] = 1;
+
         //Cria FAT registro
         fprintf(fp,"-0001|");
         for (int i = 0; i < NUMBLOCKS - 2; i++) fprintf(fp,"00000|");
         fprintf(fp,"00000\n");
 
-        for (int i = 0; i < NUMBLOCKS; i++) fat[i] = 0; //Carrega FAT na memória
+        //Carrega FAT na memória
+        fat[0] = -1;
+        for (int i = 1; i < NUMBLOCKS; i++) fat[i] = 0;
 
         // para registro de data https://linux.die.net/man/3/localtime
         time_t t = time(NULL);
@@ -96,6 +104,15 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
         for (int i = 0; i < 100 - len - 1; i++)
             fprintf(fp, "@");
         fprintf(fp, "\n");
+
+        // Cria os blocos restantes preenchidos com "@"
+        string s = "";
+        for (int i = 0; i < BLOCKSIZE - 1; i++)
+            s += "@";
+        for (int i = 1; i < NUMBLOCKS; i++) {
+            fprintf(fp, s.c_str());
+            fprintf(fp, "\n");
+        }
 
         fclose (fp);
         fp = fopen (nomeArq, "a"); //ao invés de pular é melhor reabrir e append
@@ -289,6 +306,12 @@ dir *Driver::dirStruct(string linha)
   return diretorio;
 }
 
+
+string Driver::getDiskName()
+{
+    return diskName;
+}
+
 // cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
 // origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
 // arquivos simulado a cópia de origem será salva em destino. Tanto origem quanto destino
@@ -303,12 +326,14 @@ void Driver::copy(string origem, string destino)
 
     ifstream arqOrigem(origem);
     // ifstream arqOrigem("/home/pena/Documents/SO-ep3/so-ep3/arquivos_para_cp/teste1.txt");
-    fstream fs("arquivo2");
+    fstream fs(diskName);
 
     if (!arqOrigem.is_open()) {
         cout << "[ERRO] Não foi possível abrir o arquivo " << origem << endl;
         return;
     }
+    else
+        cout << "Arquivo " << origem << " foi aberto com sucesso." << endl;
     // v1
     // joga tudo para uma string -> enfia o conteúdo no bloco 10 temporariamente
     // faz no root apenas (depois, incluir subdiretórios)
@@ -325,13 +350,16 @@ void Driver::copy(string origem, string destino)
     // int blocoDir = 0;
 
     // Encontra primeiro bloco livre
-    int k;
-    while (fsm[k] != 0)
-        k++;
-
-    fsm[k] = 1; // Marca o bloco em uso no gerenciamento de espaço livre
-    fat[k] = -1; // Marca o fat como final do arquivo
+    int k = firstFit();
+    cout << "[DEBUG] Primeiro bloco livre: " << k << endl;
+    cout << "Buffer size: " << buffer.size() << endl;
+    // Verifica tamanho da entrada
+    // Calcula número de blocos
+    // como percorrer o arquivo de x em x caracteres? --> Seek
+        // Pode ser com istream tb
+        // No primeiro bloco, descontar o espaço dos atributos do arquivo
     string nomeDestino = destino;
+    // primeiro bloco incluir
     string size = "666";
     string createdAt = "123";
     string updatedAt = "456";
@@ -341,6 +369,35 @@ void Driver::copy(string origem, string destino)
     bloco += "|" + buffer;
     cout << bloco << endl;
 
+    // --> verificar se o arquivo cabe no sistema de arquivos
+
+    while (bloco.size() > BLOCKSIZE - 1) {
+        fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Seek base do bloco k
+        fs << bloco.substr(0, BLOCKSIZE - 1);
+        bloco.erase(0, BLOCKSIZE - 1);
+        fsm[k] = 1; // Marca o bloco agora em uso no gerenciamento de espaço livre
+        int kAnt = k;
+        k = nextFit(k);
+        fat[kAnt] = k;
+        // insere no disco
+        // remove um bloco do início
+    }
+    fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Seek base do bloco k
+    if (bloco.size() < BLOCKSIZE) {
+        while (bloco.size() < BLOCKSIZE - 1)
+            bloco += "@"; // completa o espaço desperdiçado com "@"
+    }
+    fs << bloco;
+    fat[k] = -1; // Marca o fat como final do arquivo
+    fsm[k] = 1; // Marca o bloco agora em uso no gerenciamento de espaço livre
+
+    /*
+    out << s.substr(0,5) << endl;
+    cout << s << endl;
+    s.erase(0, 5);
+    cout << s.substr(0,5) << endl;
+    cout << s << endl;
+    */
     /*
     string name;
     int localFAT;
@@ -359,4 +416,20 @@ void Driver::copy(string origem, string destino)
     // encontra primeiro bloco livre (fazer uma função para isso)
         // primeiro busca no free space management
         // depois, verifica se primeiro caractere é "|" ????
+    // Escrever no Root os arquivos inseridos e o bloco inicial de cada um
+}
+
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre
+int firstFit() {
+    return nextFit(0);
+}
+
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre, mas partindo
+// de um bloco inicial b >= 0
+int nextFit(int b) {
+    int k = b;
+    while (k < NUMBLOCKS && fsm[k] != 0)
+        k++;
+    if (k >= NUMBLOCKS) cout << "[ERRO] Não há espaço livre no disco." << endl;
+    return k;
 }

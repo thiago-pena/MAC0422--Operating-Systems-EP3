@@ -26,4 +26,7 @@ using namespace std;
 // Coleta informações de data e transforma em um unsigned long int
 unsigned long long datainfo();
 
+// Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
+string intToString(int i);
+
 #endif

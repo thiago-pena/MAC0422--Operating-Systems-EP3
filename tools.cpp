@@ -2,6 +2,10 @@
 #include <iostream>
 #include <math.h>
 #include <time.h>
+#include <sstream>
+    // formatar int com zeros à esquerda
+#include <iomanip>
+    // formatar int com zeros à esquerda
 
 #include "tools.hpp"
 
@@ -16,4 +20,17 @@ unsigned long long datainfo()
           (tm.tm_hour)*pow(10,4) +
           (tm.tm_min)*pow(10,2) +
           (tm.tm_sec));
+}
+
+// Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
+string intToString(int i) {
+    if (i < 0) return "-0001";
+    int j = i, numDigitos = 0;
+    while (j > 0) {
+        j /= 10;
+        numDigitos++;
+    }
+    ostringstream s;
+    s << setw(5) << setfill('0') << i;
+    return s.str();
 }

@@ -60,6 +60,7 @@ class Driver {
     //cria um diretorio no caminho especificado
     void mkDir(string dirName);//EM PROCESSO
     void copy(string origem, string destino); // EM PROCESSO (Pena)
+    string getDiskName();
 
 };
 

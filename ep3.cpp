@@ -17,7 +17,10 @@
     // Parser & Writer
 
 void mount(FILE *fp, const char *arg1);
-
+// Escreve o conteúdo da FAT da memória para o disco
+void saveFat(Driver d);
+// Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
+void saveFsm(Driver d);
 
 int fat[NUMBLOCKS];
 int fsm[NUMBLOCKS]; // Free Space Management
@@ -119,10 +122,39 @@ int main() {
                 cout << fsm[i] << " ";
             cout << endl;
         }
+        else if (strcmp(c, "saveFat") == 0) {
+            saveFat(driver);
+        }
+        else if (strcmp(c, "saveFsm") == 0) {
+            saveFsm(driver);
+        }
         else if (strcmp(c, "teste") == 0) {
             cout << "Para criar funções de debug." << endl;
         }
         else
             cout << "Comando não reconhecido." << endl;
     }
+}
+
+
+void saveFat(Driver d) {
+    fstream fs(d.getDiskName());
+    fs.seekg(FATPOS, ios::beg); // Seek FAT
+    string fat_string = intToString(fat[0]);;
+    for (int i = 1; i < NUMBLOCKS; i++)
+        fat_string += "|" + intToString(fat[i]);
+    fs << fat_string;
+    fs.close();
+    cout << "FAT foi atualizada no disco." << endl;
+}
+
+void saveFsm(Driver d) {
+    fstream fs(d.getDiskName());
+    fs.seekg(BITMAP, ios::beg); // Seek BITMAP
+    string fsm_string;
+    for (int i = 0; i < NUMBLOCKS; i++)
+        fsm_string += to_string(fsm[i]);
+    fs << fsm_string;
+    fs.close();
+    cout << "FSM foi atualizada no disco." << endl;
 }
