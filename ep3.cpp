@@ -16,11 +16,11 @@
 #include "driver.hpp"
     // Parser & Writer
 
-string charToString(char *a);
 void mount(FILE *fp, const char *arg1);
 
 
 int FAT[FATSIZE];
+bool mountedFS = false;
 
 int main() {
     char fileName[MAXLEN];
@@ -28,7 +28,7 @@ int main() {
     Driver driver; // inicializa o driver
 
     using_history();
-    strcpy(prompt, "[ep3]:");
+    strcpy(prompt, "[ep3] $ ");
     while (true) {
         char *strChar = readline(prompt);
         add_history(strChar);
@@ -47,16 +47,20 @@ int main() {
 
         // mount arquivo
         if (strcmp(c, "mount") == 0) {
-            FILE *fp;
+            if (!mountedFS) {
+                FILE *fp;
 
-            if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
-                fclose (fp);
-                driver.mount(arg1, 1);
-            } else {
-                driver.mount(arg1, 0);
+                if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
+                    fclose (fp);
+                    driver.mount(arg1, 1);
+                } else {
+                    driver.mount(arg1, 0);
+                }
+                mountedFS = true;
             }
+            else
+                cout << "Já há um sistema de arquivos montado." << endl;
 
-            cout << "1" << endl;
         }
         // cp origem destino
         else if (strcmp(c, "cp") == 0) {
@@ -64,6 +68,7 @@ int main() {
         }
         // mkdir diretorio
         else if (strcmp(c, "mkdir") == 0) {
+            
             cout << "3" << endl;
         }
         // rmdir diretorio
@@ -97,11 +102,10 @@ int main() {
         }
         // umount
         else if (strcmp(c, "umount") == 0) {
-            cout << "11" << endl;
+            mountedFS = false;
         }
         // sai
         else if (strcmp(c, "sai") == 0) {
-            cout << "12" << endl;
             break;
         }
         else if (strcmp(c, "debug_write") == 0) {

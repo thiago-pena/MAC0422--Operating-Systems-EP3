@@ -65,6 +65,7 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
             FAT[i] = 0; //Carrega FAT na memória
             fprintf(fp,"0|"); //Cria FAT registro
         }
+        fprintf(fp,"\n");
 
         // para registro de data https://linux.die.net/man/3/localtime
         time_t t = time(NULL);
