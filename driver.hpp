@@ -40,12 +40,10 @@ class Driver {
   private:
     char *diskName;
     dir *dirStruct(string linha);
-    //Dada um nome procura o numero fat relacionado ao nome do diretório
-    int nFAT(string name, string linha);//EM PROCESSO
-    //Retorna o bloco de número nFat
-    string nFAT(int nFat);//EM PROCESSO
-    // aponta próx bloco free
-    int whereIsFree();
+    //Atualiza a FAT
+    void saveFat();
+    //Atualiza o registro de espaço livre
+    void saveFsm();
   public:
     Driver();
     ~Driver();
@@ -59,6 +57,11 @@ class Driver {
     dir *SearchDir(string name);//EM PROCESSO
     //cria um diretorio no caminho especificado
     void mkDir(string dirName);//EM PROCESSO
+    // cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
+    // origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
+    // arquivos simulado a cópia de origem será salva em destino. Tanto origem quanto destino
+    // devem ser informados com o caminho completo tanto dentro do sistema de arquivos real quanto no
+    // simulado 1 . Esse comando será executado apenas para copiar arquivos em texto puro.
     void copy(string origem, string destino); // EM PROCESSO (Pena)
     string getDiskName();
 

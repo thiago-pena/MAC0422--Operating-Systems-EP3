@@ -208,66 +208,9 @@ void Driver::ImprimeArquivo(arq *file)
   cout <<'\n'<< "------------------------------------------------------------------------------"<<'\n';
 }
 
-// aponta próx bloco free
-int Driver::whereIsFree()
-{
-  ifstream disk;
-  string linha;
-  string token1;
-  disk.open(diskName);
-  getline (disk, linha); //Pula freespace e FAT
-  getline (disk, linha);
-  for (int i = 0; i < NUMBLOCKS; i++) {
-    getline (disk, linha);
-    istringstream iss(linha);
-    getline(iss, token1, '|');
-    if (token1.empty()) return i; //devolve posição do FAT
-  }
-}
-
-string Driver::nFAT(int nFat)
-{
-    ifstream disk;
-    string bloco;
-    disk.open(diskName);
-    getline (disk, bloco); //Pula freespace e FAT
-    getline (disk, bloco);
-    for (int i = 0; i < nFat; i++) getline (disk, bloco);
-    return bloco;
-}
-
-int Driver::nFAT(string name, string bloco)
-{
-    string token1;
-    istringstream iss(bloco);
-    while (token1 != name) {
-        getline(iss, token1, '|');
-    }
-    getline(iss, token1, '|');
-    return atoi(token1.c_str());
-}
 
 void Driver::mkDir(string dirName)
 {
-    string token1;
-    string newName;
-    int nFat;
-    int nFatAtual = 0;
-    istringstream iss(dirName);
-    vector <string> caminho;
-    getline(iss, token1, '/');
-    caminho.push_back(token1.append("/"));
-    nFat = nFAT(caminho.back(), nFAT(nFatAtual));
-    newName = token1;
-    while (!token1.empty()) {
-        newName = token1;
-        getline(iss, token1, '/');
-        if(!token1.empty()) caminho.push_back(token1.append("/"));
-    }
-    // for(auto& i : caminho) {
-    //     nFat = (string newName, nFAT(0))
-    // }
-
 
 }
 
@@ -352,13 +295,13 @@ void Driver::copy(string origem, string destino)
     // como percorrer o arquivo de x em x caracteres? --> Seek
         // Pode ser com istream tb
         // No primeiro bloco, descontar o espaço dos atributos do arquivo
-    string nomeDestino = destino;
+    string nomeOrigem = origem;
     // primeiro bloco incluir
-    string size = "666";
-    string createdAt = "123";
-    string updatedAt = "456";
-    string accessedAt = "789";
-    string bloco = nomeDestino + "|" + "-1" + "|" + size;
+    string size = datainfoString();
+    string createdAt = datainfoString();
+    string updatedAt = datainfoString();
+    string accessedAt = datainfoString();
+    string bloco = nomeOrigem + "|" + "-1" + "|" + size;
     bloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
     bloco += "|" + buffer;
     cout << bloco << endl;
@@ -403,4 +346,28 @@ int nextFit(int b) {
         k++;
     if (k >= NUMBLOCKS) cout << "[ERRO] Não há espaço livre no disco." << endl;
     return k;
+}
+
+//Atualiza a FAT
+void Driver::saveFat() {
+    fstream fs(diskName);
+    fs.seekg(FATPOS, ios::beg); // Seek FAT
+    string fat_string = intToString(fat[0]);;
+    for (int i = 1; i < NUMBLOCKS; i++)
+        fat_string += "|" + intToString(fat[i]);
+    fs << fat_string;
+    fs.close();
+    cout << "FAT foi atualizada no disco." << endl;
+}
+
+//Atualiza o registro de espaço livre
+void Driver::saveFsm() {
+    fstream fs(diskName);
+    fs.seekg(BITMAP, ios::beg); // Seek BITMAP
+    string fsm_string;
+    for (int i = 0; i < NUMBLOCKS; i++)
+        fsm_string += to_string(fsm[i]);
+    fs << fsm_string;
+    fs.close();
+    cout << "FSM foi atualizada no disco." << endl;
 }
