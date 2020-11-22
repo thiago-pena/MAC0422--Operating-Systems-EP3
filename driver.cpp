@@ -115,9 +115,6 @@ void Driver::mount(char *nomeArq, bool existe) { //Inicializa o parser sobre um 
         }
 
         fclose (fp);
-        fp = fopen (nomeArq, "a"); //ao invés de pular é melhor reabrir e append
-        for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp,"|\n"); // NUMBLOCKS - 1 pq o root já é um bloco
-        fclose (fp);
         if (DEBUG) std::cout << " Terminou mount" << '\n';
     }
 
@@ -209,10 +206,142 @@ void Driver::ImprimeArquivo(arq *file)
 }
 
 
-void Driver::mkDir(string dirName)
+void Driver::mkDir(string absoluteDirName)
 {
+    string dirName;
+    string token;
+    string absolutePathName;
+    string bloco;
+    string bInit;
+
+    int pLength, tLength, nFat, freeNFat;
+
+    istringstream iss1(absoluteDirName);
+    absoluteDirName += "/"; //cambiarra para ler um vazio
+    getline(iss1, token, '/');
+    while (!token.empty()) {
+        absolutePathName += token + "/";
+        dirName = token + "/";
+        getline(iss1, token, '/');
+    }
+    std::cout << "absolutePathName. pré corte: " << absolutePathName << '\n';
+    pLength = absolutePathName.length();
+    tLength = dirName.length();
+    std::cout << "pLength - tLength" <<pLength - tLength<< '\n';
+    absolutePathName = absolutePathName.substr(0, pLength - tLength);
+    std::cout << "absolutePathName. pós corte: " << absolutePathName << '\n';
+    nFat = absolutePath(absolutePathName);
+    std::cout << "nFat inicial:" <<nFat<< '\n';
+
+    ifstream disk(diskName);
+    getline (disk, bloco); //Pula freespace e FAT
+    getline (disk, bloco);
+
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);
+    bloco += "|";
+    istringstream iss2(bloco);
+    std::cout << "bloco: " <<bloco<< '\n';
+    getline(iss2, token, '|');
+    while (token[0] != '@') {
+        bInit += token + "|";
+        getline(iss2, token, '|');
+    }
+    bInit += dirName + "|";
+    freeNFat = firstFit();
+    bInit += to_string(freeNFat) + "|";
+    std::cout << "bInit" <<bInit<< '\n';
+    if (bInit.size() < BLOCKSIZE) {
+        while (bInit.size() < BLOCKSIZE - 1)
+            bInit += "@"; // completa o espaço desperdiçado com "@"
+    }
+
+    fstream fs(diskName);
+    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+    bloco.erase(0, BLOCKSIZE - 1);
+    fs << bInit;
+    fs.seekg(ROOT + freeNFat*BLOCKSIZE, ios::beg);
+    istringstream iss3(bInit);
+    string createdAt = datainfoString();
+    string updatedAt = datainfoString();
+    string accessedAt = datainfoString();
+    getline(iss3, token, '|');
+    string insideDirName = token;
+    getline(iss3, token, '|');
+    string insideDirNameFat =  token;
+    string newBloco = dirName + "|" + to_string(freeNFat);
+    newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
+    newBloco += "|" + insideDirName + "|" + insideDirNameFat + "|";
+    if (newBloco.size() < BLOCKSIZE) {
+        while (newBloco.size() < BLOCKSIZE - 1)
+            newBloco += "@"; // completa o espaço desperdiçado com "@"
+    }
+    fs << newBloco;
+}
+
+int Driver::absolutePath(string dirPath)
+{
+    string dirNext;
+    string bloco;
+    int nFat;
+
+    dirPath += "/"; //cambiarra para ler um vazio
+    istringstream iss1(dirPath);
+    getline(iss1, dirNext, '/');
+    std::cout << "dirNext1: " <<dirNext <<'\n';
+    bloco = loadBlock(0);
+    dirNext += "/";
+    nFat = cdDir(bloco, dirNext);
+    std::cout << "nFat1:" <<nFat<< '\n';
+    getline(iss1, dirNext, '/');
+    while (!dirNext.empty()) {
+        std::cout << "dirNext: " <<dirNext <<'\n';
+        bloco = loadBlock(nFat);
+        dirNext += "/";
+        nFat = cdDir(bloco, dirNext);
+        getline(iss1, dirNext, '/');
+        std::cout << "nFat:" <<nFat<< '\n';
+    }
+    return nFat;
 
 }
+
+string Driver::loadBlock(int nFat)
+{
+    string bloco;
+    ifstream disk(diskName);
+    getline (disk, bloco); //Pula freespace e FAT
+    getline (disk, bloco);
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);
+    disk.close();
+    return bloco;
+}
+
+int Driver::cdDir(string bloco, string dirName)
+{
+    if (DEBUG) std::cout << "cd ./"<< dirName << '\n';
+    if (dirName == "root/") return 0;
+    string token;
+    int nFat;
+
+    bloco += "|";
+    istringstream iss(bloco);
+    getline(iss, token, '|');
+    std::cout << "bloco:" << bloco << '\n';
+
+    for (int i = 0; i < METADIR; i++) getline(iss, token, '|');
+    std::cout << "token pós METADIR:" << '\n';
+    while (token != dirName || token[0] != '@' || !token.empty()) getline(iss, token, '|');
+
+    std::cout << "token pós METADIR:" << '\n';
+    if (token[0] != '@') {
+      std::cout << "ERRO: caminho inválido" << '\n';
+    } else {
+      getline(iss, token, '|');
+      int nFat = atoi(token.c_str());
+      return nFat;
+    }
+}
+
 
 dir *Driver::dirStruct(string linha)
 {
@@ -237,7 +366,7 @@ dir *Driver::dirStruct(string linha)
 
   getline(iss, token1, '|'); //Pastas e arquivos dentro.
   l = token1.length();
-  while (!token1.empty()) {
+  while (token1[0] != '@') {
       if (token1[0] == '\"') {
         diretorio->arqPont.push_back(token1);
       } else if (token1[l - 1] == '/'){
@@ -254,6 +383,15 @@ string Driver::getDiskName()
 {
     return diskName;
 }
+
+// void Driver::newDir(string nameDir)
+// {
+//     fstream fs(diskName);
+//
+//     int k = firstFit();
+//     cout << "[DEBUG] Primeiro bloco livre: " << k << endl;
+//
+// }
 
 // cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
 // origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
@@ -280,7 +418,7 @@ void Driver::copy(string origem, string destino)
     string buffer;
     getline(arqOrigem, buffer);
     cout << "Teste buffer: " << buffer << endl;
-    //arquivo1.txt|-1|8|162115102020|162215102020|162215102020|dir1/|conteudo
+    // arquivo1.txt|-1|8|162115102020|162215102020|162215102020|dir1/|conteudo
     // arquivo1.txt|-1|@|123|456|789
 
     // busca fat do diretório de destino (por enquanto é o root)
@@ -297,12 +435,21 @@ void Driver::copy(string origem, string destino)
         // No primeiro bloco, descontar o espaço dos atributos do arquivo
     string nomeOrigem = origem;
     // primeiro bloco incluir
-    string size = datainfoString();
+    string size = "123";
     string createdAt = datainfoString();
     string updatedAt = datainfoString();
     string accessedAt = datainfoString();
-    string bloco = nomeOrigem + "|" + "-1" + "|" + size;
+
+    // Pasta Pai
+    string insideDirName; string insideDirNameFat;
+    if(destino == diskName) {
+        insideDirName = "root/";
+        insideDirNameFat = "0";
+    }
+
+    string bloco = "\"" + nomeOrigem + "\"" + "|" + "-1" + "|" + size;
     bloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
+    bloco += "|" + insideDirName + "|" + insideDirNameFat;
     bloco += "|" + buffer;
     cout << bloco << endl;
 
@@ -370,4 +517,44 @@ void Driver::saveFsm() {
     fs << fsm_string;
     fs.close();
     cout << "FSM foi atualizada no disco." << endl;
+}
+
+// Usa timeUpdater para atualizar a data de acesso
+void Driver::accessedAtUpdater(int nFat) {
+    timeUpdater(nFat, 4);
+}
+// Usa timeUpdater para atualizar a data de modificação
+void Driver::updateAtUpdater(int nFat) {
+    timeUpdater(nFat, 3);
+}
+
+void Driver::timeUpdater(int nFat, int pos) {
+    ifstream disk(diskName);
+    string token;
+    string bloco;
+    string bInit; string bEnd;
+    //disk.open(diskName);
+    getline (disk, bloco); //Pula freespace e FAT
+    getline (disk, bloco);
+
+    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    istringstream iss(bloco);
+
+    int jump = pos; // Diferencia local da data de arquivo e diretorio
+    if (bloco[0] == '\"') jump = pos + 1;
+
+    for (int j = 0; j < 4; j++) { // Pega o inicio e grava em um buffer inicio
+        getline(iss, token, '|');
+        bInit += token + "|";
+    }
+    getline(iss, token, '|');
+    getline(iss, bEnd, '\n');
+    token = datainfoString();
+
+    bInit += token + "|" + bEnd; // Concatena com o buffer do fim do bloco
+    disk.close();
+
+    fstream fs(diskName);
+    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+    fs << bInit;
 }

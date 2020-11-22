@@ -22,6 +22,8 @@ void saveFat(Driver d);
 // Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
 void saveFsm(Driver d);
 
+void accessedAtUpdater(int nFat, Driver d);
+
 int fat[NUMBLOCKS];
 int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS = false;
@@ -71,7 +73,7 @@ int main() {
         }
         // mkdir diretorio
         else if (strcmp(c, "mkdir") == 0) {
-
+            driver.mkDir(arg1);
             cout << "3" << endl;
         }
         // rmdir diretorio
@@ -128,6 +130,9 @@ int main() {
         else if (strcmp(c, "saveFsm") == 0) {
             saveFsm(driver);
         }
+        else if (strcmp(c, "accessedAtUpdater") == 0) {
+            accessedAtUpdater(atoi(arg1), driver);
+        }
         else if (strcmp(c, "teste") == 0) {
             cout << "Para criar funções de debug." << endl;
         }
@@ -157,4 +162,35 @@ void saveFsm(Driver d) {
     fs << fsm_string;
     fs.close();
     cout << "FSM foi atualizada no disco." << endl;
+}
+
+void accessedAtUpdater(int nFat, Driver d) {
+    ifstream disk(d.getDiskName());
+    string token;
+    string bloco;
+    string bInit; string bEnd;
+
+    //disk.open(diskName);
+    getline (disk, bloco); //Pula freespace e FAT
+    getline (disk, bloco);
+
+    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    istringstream iss(bloco);
+
+    int jump = 4; // Diferencia local da data de arquivo e diretorio
+    if (bloco[0] == '\"') jump = 5;
+
+    for (int j = 0; j < 4; j++) { // Pega o inicio e grava em um buffer inicio
+        getline(iss, token, '|');
+        bInit += token + "|";
+    }
+    getline(iss, token, '|');
+    getline(iss, bEnd, '\n');
+    token = datainfoString();
+    bInit += token + "|" + bEnd; // Concatena com o buffer do fim do bloco
+    disk.close();
+
+    fstream fs(d.getDiskName());
+    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+    fs << bInit;
 }

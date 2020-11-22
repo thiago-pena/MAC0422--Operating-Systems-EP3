@@ -40,10 +40,22 @@ class Driver {
   private:
     char *diskName;
     dir *dirStruct(string linha);
-    //Atualiza a FAT
+    // Atualiza a FAT.
     void saveFat();
-    //Atualiza o registro de espaço livre
+    // Atualiza o registro de espaço livre.
     void saveFsm();
+    // Usa timeUpdater para atualizar a data de acesso.
+    void accessedAtUpdater(int nFat);
+    // Usa timeUpdater para atualizar a data de modificação.
+    void updateAtUpdater(int nFat);
+    // Atualizador de tempo.
+    void timeUpdater(int nFat, int pos);
+
+    string loadBlock(int nFat);
+
+    int absolutePath(string dirPath);
+
+    int cdDir(string bloco, string dirName);
   public:
     Driver();
     ~Driver();
