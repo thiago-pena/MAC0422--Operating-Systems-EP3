@@ -224,14 +224,11 @@ void Driver::mkDir(string absoluteDirName)
         dirName = token + "/";
         getline(iss1, token, '/');
     }
-    std::cout << "absolutePathName. pré corte: " << absolutePathName << '\n';
     pLength = absolutePathName.length();
     tLength = dirName.length();
-    std::cout << "pLength - tLength" <<pLength - tLength<< '\n';
     absolutePathName = absolutePathName.substr(0, pLength - tLength);
-    std::cout << "absolutePathName. pós corte: " << absolutePathName << '\n';
+
     nFat = absolutePath(absolutePathName);
-    std::cout << "nFat inicial:" <<nFat<< '\n';
 
     ifstream disk(diskName);
     getline (disk, bloco); //Pula freespace e FAT
@@ -240,7 +237,7 @@ void Driver::mkDir(string absoluteDirName)
     for (int i = 0; i <= nFat; i++) getline (disk, bloco);
     bloco += "|";
     istringstream iss2(bloco);
-    std::cout << "bloco: " <<bloco<< '\n';
+
     getline(iss2, token, '|');
     while (token[0] != '@') {
         bInit += token + "|";
@@ -249,7 +246,7 @@ void Driver::mkDir(string absoluteDirName)
     bInit += dirName + "|";
     freeNFat = firstFit();
     bInit += to_string(freeNFat) + "|";
-    std::cout << "bInit" <<bInit<< '\n';
+
     if (bInit.size() < BLOCKSIZE) {
         while (bInit.size() < BLOCKSIZE - 1)
             bInit += "@"; // completa o espaço desperdiçado com "@"
@@ -259,6 +256,7 @@ void Driver::mkDir(string absoluteDirName)
     fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
     bloco.erase(0, BLOCKSIZE - 1);
     fs << bInit;
+
     fs.seekg(ROOT + freeNFat*BLOCKSIZE, ios::beg);
     istringstream iss3(bInit);
     string createdAt = datainfoString();
@@ -268,6 +266,7 @@ void Driver::mkDir(string absoluteDirName)
     string insideDirName = token;
     getline(iss3, token, '|');
     string insideDirNameFat =  token;
+
     string newBloco = dirName + "|" + to_string(freeNFat);
     newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
     newBloco += "|" + insideDirName + "|" + insideDirNameFat + "|";
@@ -276,6 +275,13 @@ void Driver::mkDir(string absoluteDirName)
             newBloco += "@"; // completa o espaço desperdiçado com "@"
     }
     fs << newBloco;
+    disk.close();
+
+    accessedAtUpdater(nFat); // Atualiza tempo de acesso
+    fat[freeNFat] = -1;
+    fsm[freeNFat] = 1;
+    saveFat();
+    saveFsm();
 }
 
 int Driver::absolutePath(string dirPath)
@@ -287,19 +293,17 @@ int Driver::absolutePath(string dirPath)
     dirPath += "/"; //cambiarra para ler um vazio
     istringstream iss1(dirPath);
     getline(iss1, dirNext, '/');
-    std::cout << "dirNext1: " <<dirNext <<'\n';
+
     bloco = loadBlock(0);
     dirNext += "/";
     nFat = cdDir(bloco, dirNext);
-    std::cout << "nFat1:" <<nFat<< '\n';
+
     getline(iss1, dirNext, '/');
     while (!dirNext.empty()) {
-        std::cout << "dirNext: " <<dirNext <<'\n';
         bloco = loadBlock(nFat);
         dirNext += "/";
         nFat = cdDir(bloco, dirNext);
         getline(iss1, dirNext, '/');
-        std::cout << "nFat:" <<nFat<< '\n';
     }
     return nFat;
 
@@ -309,9 +313,11 @@ string Driver::loadBlock(int nFat)
 {
     string bloco;
     ifstream disk(diskName);
+
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
     for (int i = 0; i <= nFat; i++) getline (disk, bloco);
+
     disk.close();
     return bloco;
 }
@@ -319,25 +325,25 @@ string Driver::loadBlock(int nFat)
 int Driver::cdDir(string bloco, string dirName)
 {
     if (DEBUG) std::cout << "cd ./"<< dirName << '\n';
-    if (dirName == "root/") return 0;
+    if (dirName == "root/") {
+      accessedAtUpdater(0);
+      return 0;
+    }
     string token;
     int nFat;
 
     bloco += "|";
     istringstream iss(bloco);
-    getline(iss, token, '|');
-    std::cout << "bloco:" << bloco << '\n';
 
-    for (int i = 0; i < METADIR; i++) getline(iss, token, '|');
-    std::cout << "token pós METADIR:" << '\n';
-    while (token != dirName || token[0] != '@' || !token.empty()) getline(iss, token, '|');
+    for (int i = 0; i <= METADIR; i++) getline(iss, token, '|');
+    while (token != dirName && token[0] != '@') getline(iss, token, '|');
 
-    std::cout << "token pós METADIR:" << '\n';
-    if (token[0] != '@') {
+    if (token[0] == '@') {
       std::cout << "ERRO: caminho inválido" << '\n';
     } else {
       getline(iss, token, '|');
       int nFat = atoi(token.c_str());
+      accessedAtUpdater(nFat); // Atualiza tempo de acesso
       return nFat;
     }
 }

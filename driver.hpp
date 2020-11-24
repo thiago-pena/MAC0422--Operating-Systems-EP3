@@ -9,7 +9,7 @@
 
 #include "tools.hpp"
 
-extern int fat[NUMBLOCKS];
+
 
 typedef struct diretorio dir;
 typedef struct arquivo arq;

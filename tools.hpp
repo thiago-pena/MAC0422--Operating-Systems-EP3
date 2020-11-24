@@ -20,8 +20,13 @@
 #define FATPOS 21
 #define ROOT 141
 #define BLOCKSIZE 100
+#define METADIR 7
+#define METAFILE 8
 
 using namespace std;
+
+extern int fat[NUMBLOCKS];
+extern int fsm[NUMBLOCKS];
 
 // Coleta informações de data e transforma em um unsigned long int
 unsigned long long datainfo();
