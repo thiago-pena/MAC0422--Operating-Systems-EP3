@@ -73,41 +73,49 @@ int main() {
         }
         // mkdir diretorio
         else if (strcmp(c, "mkdir") == 0) {
-            driver.mkDir(arg1);
+            driver.mkDirAndTouch(arg1, 0);
             cout << "3" << endl;
         }
         // rmdir diretorio
         else if (strcmp(c, "rmdir") == 0) {
+            driver.rmDir(arg1, LOWLEVELFORMAT);
             cout << "4" << endl;
         }
         // cat arquivo
         else if (strcmp(c, "cat") == 0) {
-            driver.SearchFile(arg1);
+            driver.SearchFile(arg1, 0, LOWLEVELFORMAT);
             cout << "5" << endl;
         }
         // touch arquivo
         else if (strcmp(c, "touch") == 0) {
+            driver.mkDirAndTouch(arg1,1);
             cout << "6" << endl;
         }
         // rm arquivo
         else if (strcmp(c, "rm") == 0) {
+            driver.SearchFile(arg1, 1, LOWLEVELFORMAT);
             cout << "7" << endl;
         }
         // ls diretorio
         else if (strcmp(c, "ls") == 0) {
+            driver.ListDir(arg1);
             cout << "8" << endl;
         }
         // find diretorio arquivo
         else if (strcmp(c, "find") == 0) {
+            driver.finder(arg1, arg2);
             cout << "9" << endl;
         }
         // df
         else if (strcmp(c, "df") == 0) {
+            driver.df();
             cout << "10" << endl;
         }
         // umount
         else if (strcmp(c, "umount") == 0) {
+            if (mountedFS) driver.umount();
             mountedFS = false;
+
             // dar free? ou preparar para poder montar outro arquivo
         }
         // sai

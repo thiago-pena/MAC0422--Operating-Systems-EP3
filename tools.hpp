@@ -13,7 +13,7 @@
 
 #define DEBUG 1
 #define MAXLEN 255
-#define FATSIZE 16
+#define FATSIZE 20
 
 #define NUMBLOCKS 20
 #define BITMAP 0
@@ -22,6 +22,7 @@
 #define BLOCKSIZE 100
 #define METADIR 7
 #define METAFILE 8
+#define LOWLEVELFORMAT 1
 
 using namespace std;
 
