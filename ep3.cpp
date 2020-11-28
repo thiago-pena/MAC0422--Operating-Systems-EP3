@@ -18,9 +18,9 @@
 
 void mount(FILE *fp, const char *arg1);
 // Escreve o conteúdo da FAT da memória para o disco
-void saveFat(Driver d);
+void saveFat2(Driver d);
 // Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
-void saveFsm(Driver d);
+void saveFsm2(Driver d);
 
 void accessedAtUpdater(int nFat, Driver d);
 
@@ -43,11 +43,11 @@ int main() {
         char *arg2 = strtok(NULL, " ");
 
         if (DEBUG) {
-            cout << "[DEBUG] c: " << c << endl;
+            cout << "\t[DEBUG] c: " << c << endl;
             if (arg1 != NULL)
-                cout << "[DEBUG] arg1: " << arg1 << endl;
+                cout << "\t[DEBUG] arg1: " << arg1 << endl;
             if (arg2 != NULL)
-                cout << "[DEBUG] arg2: " << arg2 << endl;
+                cout << "\t[DEBUG] arg2: " << arg2 << endl;
         }
 
         // mount arquivo
@@ -113,6 +113,7 @@ int main() {
         }
         // umount
         else if (strcmp(c, "umount") == 0) {
+            if (DEBUG) cout << "\t[DEBUG] comando umount" << endl;
             if (mountedFS) driver.umount();
             mountedFS = false;
 
@@ -133,10 +134,11 @@ int main() {
             cout << endl;
         }
         else if (strcmp(c, "saveFat") == 0) {
-            saveFat(driver);
+            saveFat2(driver);
+            // driver.saveFat();
         }
         else if (strcmp(c, "saveFsm") == 0) {
-            saveFsm(driver);
+            saveFsm2(driver);
         }
         else if (strcmp(c, "accessedAtUpdater") == 0) {
             accessedAtUpdater(atoi(arg1), driver);
@@ -150,7 +152,7 @@ int main() {
 }
 
 
-void saveFat(Driver d) {
+void saveFat2(Driver d) {
     fstream fs(d.getDiskName());
     fs.seekg(FATPOS, ios::beg); // Seek FAT
     string fat_string = intToString(fat[0]);;
@@ -161,7 +163,7 @@ void saveFat(Driver d) {
     cout << "FAT foi atualizada no disco." << endl;
 }
 
-void saveFsm(Driver d) {
+void saveFsm2(Driver d) {
     fstream fs(d.getDiskName());
     fs.seekg(BITMAP, ios::beg); // Seek BITMAP
     string fsm_string;
@@ -182,11 +184,11 @@ void accessedAtUpdater(int nFat, Driver d) {
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
 
-    for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
     istringstream iss(bloco);
 
-    // int jump = 4; // Diferencia local da data de arquivo e diretorio
-    // if (bloco[0] == '\"') jump = 5;
+    int jump = 4; // Diferencia local da data de arquivo e diretorio
+    if (bloco[0] == '\"') jump = 5;
 
     for (int j = 0; j < 4; j++) { // Pega o inicio e grava em um buffer inicio
         getline(iss, token, '|');

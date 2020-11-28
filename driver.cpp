@@ -15,7 +15,7 @@ int nextFit(int b);
 
 Driver::Driver()
 {
-    if (DEBUG) printf("\t[DEBUG] Driver inicializado!\n");
+    if (DEBUG) printf("Driver inicializado!\n");
 }
 
 Driver::~Driver()
@@ -27,11 +27,12 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 {
     diskName = nomeArq; //Nomeia arquivo disco;
     if (existe) {
-        if (DEBUG) printf("\t[DEBUG] Driver inicializado!\n");
+        if (DEBUG) printf("Driver inicializado!\n");
         // Variáveis________________________________________________________
         string arquivo; string linha; string palavra;
         string token1; string token2; string token3;
         string token4; string token5; string token6;
+        int lFinal;
         ifstream inFile;
 
         inFile.open(nomeArq);
@@ -43,19 +44,31 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 
         // Gerencimanto de Espaço Livre
         getline(inFile, linha);
+        cout << "Teste FSM\n";
+        cout << linha << endl;
+        cout << linha[0] << endl;
+        cout << linha[2] << endl;
         for (int i = 0; i < NUMBLOCKS; i++)
             fsm[i] = linha[i] - '0';
+        cout << "FIM teste\n";
 
         // FAT______________________________________________________________
         getline(inFile, linha);
         istringstream iss(linha);
         for (int i = 0; i < NUMBLOCKS; i++) {
-            getline(iss, palavra , '|');
+            getline( iss, palavra , '|');
             fat[i] = atoi(palavra.c_str());
         }
 
+
+
+        if (DEBUG) {
+          printf("memory FAT: [");
+          for (int i = 0; i < NUMBLOCKS; i++) printf(" %02d", fat[i]);
+          printf("]\n");
+        }
         inFile.close();
-        if (DEBUG) std::cout << "\t[DEBUG] Terminou mount" << '\n';
+        if (DEBUG) std::cout << " Terminou mount" << '\n';
 
     } else { //Cria arquivo.txt caso ele não exista
         FILE *fp;
@@ -90,11 +103,12 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         fat[0] = -1;
         for (int i = 1; i < NUMBLOCKS; i++) fat[i] = 0;
 
-        // // para registro de data https://linux.die.net/man/3/localtime
-        // time_t t = time(NULL);
-        // struct tm tm = *localtime(&t);
+        // para registro de data https://linux.die.net/man/3/localtime
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
 
         unsigned long long dataInt = datainfo();
+        // fprintf(fp,"root/|0|%lld|%lld|%lld|root/|0|\n", dataInt, dataInt, dataInt);
         fprintf(fp, "root/|0|%lld|%lld|%lld|root/|0|", dataInt, dataInt, dataInt);
         int len = strlen("root/|0|20201121084741|20201121084741|20201121084741|root/|0|");
         for (int i = 0; i < 100 - len - 1; i++)
@@ -106,18 +120,19 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         for (int i = 0; i < BLOCKSIZE - 1; i++)
             s += "@";
         for (int i = 1; i < NUMBLOCKS; i++) {
-            fprintf(fp, "%s", s.c_str());
+            fprintf(fp, s.c_str());
             fprintf(fp, "\n");
         }
 
         fclose (fp);
-        if (DEBUG) std::cout << "\t[DEBUG] Terminou mount" << '\n';
+        if (DEBUG) std::cout << " Terminou mount" << '\n';
     }
 
 }
 
 void Driver::umount()
 {
+    cout << "driver.umount" << endl;
     std::cout << diskName << " desmontado." << '\n';
     diskName = nullptr;
 }
@@ -206,7 +221,6 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
       }
       return true;
     }
-    return false; // by Pena -> remover warning
 }
 
 void Driver::ListDir(string absoluteDirName)
@@ -260,7 +274,7 @@ void Driver::listener(int nFat)
 
 void Driver::finder(string absoluteDirName, string file)
 {
-    int nFat;
+    int nFat, l;
     string bloco, token, lastC;
     bool achou = false;
 
@@ -379,8 +393,8 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     string bInit;
 
     int pLength, tLength, nFat, freeNFat;
-    absoluteDirName += "/"; //cambiarra para ler um vazio
-    if (isFile) absoluteDirName += "/";
+    if (absoluteDirName[absoluteDirName.size() - 1] != '/')
+        absoluteDirName += "/";
     istringstream iss1(absoluteDirName);
 
     // procura pelo nome do arquivo ou diretório
@@ -459,18 +473,18 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
     fat[freeNFat] = -1;
     fsm[freeNFat] = 1;
-    saveFat();
-    saveFsm();
+    // saveFat();
+    // saveFsm();
 }
 
-void Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
+int Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
 {
     string dirName;
     string token;
     string absolutePathName;
     string bloco, blocoP, newBlocoP, lastC;
 
-    int pLength, tLength, nFat, nFat2;
+    int pLength, tLength, nFat, nFat2, l;
 
     absoluteDirName += "/"; //cambiarra para ler um vazio
 
@@ -518,6 +532,7 @@ void Driver::remover(int nFat, bool LowLevelFormat)
   int newFat, l;
   string bloco, bloco2, token, lastC;
   ifstream disk(diskName);
+  bool isFile = false;
 
   getline (disk, bloco); //Pula freespace e FAT
   getline (disk, bloco);
@@ -561,6 +576,7 @@ void Driver::remover(int nFat, bool LowLevelFormat)
 string Driver::metaRemover(string bloco, string name)
 {
     string newBloco, token;
+    int l;
     bloco += "||";
 
     istringstream iss(bloco);
@@ -632,12 +648,13 @@ string Driver::loadBlock(int nFat)
 
 int Driver::cdDir(string bloco, string dirName)
 {
-    if (DEBUG) std::cout << "\t[DEBUG] cd ./"<< dirName << '\n';
+    if (DEBUG) std::cout << "[DEBUG] cd ./"<< dirName << '\n';
     if (dirName == "root/") {
       accessedAtUpdater(0, false);
       return 0;
     }
     string token;
+    int nFat;
 
     bloco += "|";
     istringstream iss(bloco);
@@ -653,7 +670,6 @@ int Driver::cdDir(string bloco, string dirName)
       accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
       return nFat;
     }
-    return -1; // by Pena (remover warning)
 }
 
 string Driver::getDiskName()
@@ -817,7 +833,7 @@ void Driver::timeUpdater(int nFat, int pos)
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
 
-    for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
     istringstream iss(bloco);
 
     for (int j = 0; j < pos; j++) { // Pega o inicio e grava em um buffer inicio
