@@ -15,7 +15,7 @@ int nextFit(int b);
 
 Driver::Driver()
 {
-    if (DEBUG) printf("Driver inicializado!\n");
+    if (DEBUG) printf("\t[DEBUG] Driver inicializado!\n");
 }
 
 Driver::~Driver()
@@ -27,7 +27,7 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 {
     diskName = nomeArq; //Nomeia arquivo disco;
     if (existe) {
-        if (DEBUG) printf("Driver inicializado!\n");
+        if (DEBUG) printf("\t[DEBUG] Driver inicializado!\n");
         // Variáveis________________________________________________________
         string arquivo; string linha; string palavra;
         string token1; string token2; string token3;
@@ -43,31 +43,19 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 
         // Gerencimanto de Espaço Livre
         getline(inFile, linha);
-        cout << "Teste FSM\n";
-        cout << linha << endl;
-        cout << linha[0] << endl;
-        cout << linha[2] << endl;
         for (int i = 0; i < NUMBLOCKS; i++)
             fsm[i] = linha[i] - '0';
-        cout << "FIM teste\n";
 
         // FAT______________________________________________________________
         getline(inFile, linha);
         istringstream iss(linha);
         for (int i = 0; i < NUMBLOCKS; i++) {
-            getline( iss, palavra , '|');
+            getline(iss, palavra , '|');
             fat[i] = atoi(palavra.c_str());
         }
 
-
-
-        if (DEBUG) {
-          printf("memory FAT: [");
-          for (int i = 0; i < NUMBLOCKS; i++) printf(" %02d", fat[i]);
-          printf("]\n");
-        }
         inFile.close();
-        if (DEBUG) std::cout << " Terminou mount" << '\n';
+        if (DEBUG) std::cout << "\t[DEBUG] Terminou mount" << '\n';
 
     } else { //Cria arquivo.txt caso ele não exista
         FILE *fp;
@@ -79,17 +67,24 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         }
 
         //free space
-        fprintf(fp,"1");
-        for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp,"0");
+        fprintf(fp, "1");
+        for (int i = 0; i < NUMBLOCKS - 1; i++) fprintf(fp, "0");
+        for (int i = NUMBLOCKS%BLOCKSIZE; i < BLOCKSIZE - 1; i++) // completa o último bloco com '@'s
+            fprintf(fp, "@");
         fprintf(fp,"\n");
 
         for (int i = 1; i < NUMBLOCKS; i++) fsm[i] = 0; //Carrega FSM na memória
         fsm[0] = 1;
 
         //Cria FAT registro
-        fprintf(fp,"-0001|");
-        for (int i = 0; i < NUMBLOCKS - 2; i++) fprintf(fp,"00000|");
-        fprintf(fp,"00000\n");
+        string fatStr = "";
+        fatStr += "-0001|";
+        for (int i = 0; i < NUMBLOCKS - 2; i++) fatStr += "00000|";
+        fatStr += "00000";
+        for (int i = fatStr.size()%BLOCKSIZE; i < BLOCKSIZE - 1; i++) // completa o último bloco com '@'s
+            fatStr += "@";
+        fatStr += "\n";
+        fprintf(fp, "%s", fatStr.c_str());
 
         //Carrega FAT na memória
         fat[0] = -1;
@@ -100,7 +95,6 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         // struct tm tm = *localtime(&t);
 
         unsigned long long dataInt = datainfo();
-        // fprintf(fp,"root/|0|%lld|%lld|%lld|root/|0|\n", dataInt, dataInt, dataInt);
         fprintf(fp, "root/|0|%lld|%lld|%lld|root/|0|", dataInt, dataInt, dataInt);
         int len = strlen("root/|0|20201121084741|20201121084741|20201121084741|root/|0|");
         for (int i = 0; i < 100 - len - 1; i++)
@@ -117,7 +111,7 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         }
 
         fclose (fp);
-        if (DEBUG) std::cout << " Terminou mount" << '\n';
+        if (DEBUG) std::cout << "\t[DEBUG] Terminou mount" << '\n';
     }
 
 }
@@ -638,7 +632,7 @@ string Driver::loadBlock(int nFat)
 
 int Driver::cdDir(string bloco, string dirName)
 {
-    if (DEBUG) std::cout << "[DEBUG] cd ./"<< dirName << '\n';
+    if (DEBUG) std::cout << "\t[DEBUG] cd ./"<< dirName << '\n';
     if (dirName == "root/") {
       accessedAtUpdater(0, false);
       return 0;

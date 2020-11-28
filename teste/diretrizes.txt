@@ -1,24 +1,14 @@
 *NUMBLOCKS = 20 blocos
 *BLOCKSIZE = 100 // Tamanho do bloco: 100 caracteres
 
-bitmap: NUMBLOCKS 20 = 20 caracteres
+bitmap: NUMBLOCKS 80 = 80 caracteres
     Base: 0
-    Limite: NUMBLOCKS = 20
+    Limite do bloco final: (1 + NUMBLOCKS/BLOCKSIZE)*BLOCKSIZE - 1 = (1 + 80/100)*100 - 1 = 99
 
-fat: 6*NUMBLOCKS - 1 = 6*20 -1 = 119 caracteres
-    Base: NUMBLOCKS + 1 = 21
-    Limite: (NUMBLOCKS + 1) + (6*NUMBLOCKS - 1) = 7*NUMBLOCKS = 140
+fat: 6*NUMBLOCKS - 1 = 6*80 - 1 = 479 caracteres
+(1 + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE - 1 = (1 + (6*80)/100)*100  - 1 = (1 + 480/100)*100 - 1 = 499
+    Base: (1 + NUMBLOCKS/BLOCKSIZE)*BLOCKSIZE = (1 + 80/100)*100 = 100
+    Limite do bloco final: (2 + NUMBLOCKS/BLOCKSIZE + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE
 
-root (Bloco 0)
-    Base: ROOT = 7*NUMBLOCKS + 1 = 141
-    Limite: (7*NUMBLOCKS + 1) + (BLOCKSIZE - 1) = 141 + 99 = 240
-
-Bloco k
-    Base: ROOT + k*BLOCKSIZE = 141 + 100*k
-    Limite: ROOT + (k + 1)*BLOCKSIZE - 1 = 141 + 100*(k + 1) - 1 = 240 + 100*k
-
-
-
-- remover bitmap último pipe
-- remover bitmap último fat
-- não preciso de separador no free space mngmt
+root:
+    Base: (2 + NUMBLOCKS/BLOCKSIZE + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE = (2 + 80/100 + (6*80)/100)*100 = (2 + 4)*100 = 600
