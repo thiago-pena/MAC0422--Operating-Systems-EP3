@@ -74,10 +74,11 @@ class Driver {
     // Imprime informação e conteúdo de arquivo
     void ImprimeArquivo(string bloco, bool isInit);
     // Remove pasta usando...
-    void rmDir(string absoluteDirName, bool LowLevelFormat);
+    int rmDir(string absoluteDirName, bool LowLevelFormat);
     // Cria um diretorio no caminho especificado, caso for chamado com flag
     // isFile funciona como touch e cria/atualiza arquivo.
     void mkDirAndTouch(string absoluteDirName, bool isFile);
+    void mkDirAndTouch2(string absoluteDirName, bool isFile);
     // cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
     // origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
     // arquivos simulado a cópia de origem será salva em destino. Tanto origem quanto destino

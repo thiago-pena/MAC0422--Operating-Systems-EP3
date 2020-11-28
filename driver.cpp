@@ -399,7 +399,106 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
 
     // procura pelo nome do arquivo ou diretório
     getline(iss1, token, '/');
-    while (!token.empty()) {
+    while (!token.empty()) { // (Pena) pega o último diretório e o nome da pasta/arquivo (no token)
+        absolutePathName += token + "/";
+        dirName = token + "/";
+        getline(iss1, token, '/');
+    }
+    // separa caminho de local final.
+    pLength = absolutePathName.length();
+    tLength = dirName.length();
+    absolutePathName = absolutePathName.substr(0, pLength - tLength);
+    if (isFile) dirName = dirName.substr(0, tLength - 1);
+    nFat = absolutePath(absolutePathName);
+
+    ifstream disk(diskName);
+    getline (disk, bloco); //Pula freespace e FAT
+    getline (disk, bloco);
+
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);
+    bloco += "|";
+    istringstream iss2(bloco);
+
+    getline(iss2, token, '|');
+    while (token[0] != '@') {
+        bInit += token + "|";
+        getline(iss2, token, '|');
+    }
+    bInit += dirName + "|";
+    freeNFat = firstFit();
+    bInit += to_string(freeNFat) + "|";
+
+    if (bInit.size() < BLOCKSIZE) {
+        while (bInit.size() < BLOCKSIZE - 1)
+            bInit += "@"; // completa o espaço desperdiçado com "@"
+    }
+
+    fstream fs(diskName);
+    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+    bloco.erase(0, BLOCKSIZE - 1);
+    fs << bInit;
+
+    fs.seekg(ROOT + freeNFat*BLOCKSIZE, ios::beg);
+    istringstream iss3(bInit);
+    string createdAt = datainfoString();
+    string updatedAt = datainfoString();
+    string accessedAt = datainfoString();
+
+    getline(iss3, token, '|');
+    string insideDirName = token;
+    getline(iss3, token, '|');
+    string insideDirNameFat =  token;
+    if(isFile) {
+        string size = "0";
+        string newFile = dirName + "|" + to_string(freeNFat) + "|" + size;
+        newFile += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
+        newFile += "|" + insideDirName + "|" + insideDirNameFat + "|";
+        if (newFile.size() < BLOCKSIZE) {
+            while (newFile.size() < BLOCKSIZE - 1)
+                newFile += "@"; // completa o espaço desperdiçado com "@"
+        }
+        fs << newFile;
+    } else {
+        string newBloco = dirName + "|" + to_string(freeNFat);
+        newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
+        newBloco += "|" + insideDirName + "|" + insideDirNameFat + "|";
+        if (newBloco.size() < BLOCKSIZE) {
+            while (newBloco.size() < BLOCKSIZE - 1)
+                newBloco += "@"; // completa o espaço desperdiçado com "@"
+        }
+        fs << newBloco;
+    }
+
+    disk.close();
+    accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
+    fat[freeNFat] = -1;
+    fsm[freeNFat] = 1;
+    // saveFat();
+    // saveFsm();
+}
+
+void Driver::mkDirAndTouch2(string absoluteDirName, bool isFile)
+{
+    if (SearchFile(absoluteDirName, 0, false)) return;
+
+    string dirName;
+    string token;
+    string absolutePathName;
+    string bloco;
+    string bInit;
+
+    int pLength, tLength, nFat, freeNFat;
+    if (absoluteDirName[absoluteDirName.size() - 1] != '/')
+        absoluteDirName += "/";
+    istringstream iss1(absoluteDirName);
+
+    //////////////////////////////////////////
+
+    //////////////////////////////////////////
+
+    // procura pelo nome do arquivo ou diretório
+    getline(iss1, token, '/');
+    while (!token.empty()) { // (Pena) pega o último diretório e o nome da pasta/arquivo (no token)
         absolutePathName += token + "/";
         dirName = token + "/";
         getline(iss1, token, '/');

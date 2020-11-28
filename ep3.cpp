@@ -21,7 +21,7 @@ void mount(FILE *fp, const char *arg1);
 void saveFat2(Driver d);
 // Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
 void saveFsm2(Driver d);
-
+string readFile(Driver d, int k);
 void accessedAtUpdater(int nFat, Driver d);
 
 int fat[NUMBLOCKS];
@@ -75,6 +75,14 @@ int main() {
         else if (strcmp(c, "mkdir") == 0) {
             driver.mkDirAndTouch(arg1, 0);
             cout << "3" << endl;
+        }
+        else if (strcmp(c, "mkdir2") == 0) {
+            driver.mkDirAndTouch2(arg1, 0);
+            cout << "3b" << endl;
+        }
+        else if (strcmp(c, "cat2") == 0) {
+            string s = readFile(driver, atoi(arg1));
+            cout << "\t[DEBUG] " << s << endl;
         }
         // rmdir diretorio
         else if (strcmp(c, "rmdir") == 0) {
@@ -203,4 +211,27 @@ void accessedAtUpdater(int nFat, Driver d) {
     fstream fs(d.getDiskName());
     fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
     fs << bInit;
+}
+
+// Recebe um Driver e um inteiro k representando um bloco de início de um
+// arquivo ou diretório e retorna uma string com o conteúdo de todos os seus
+// blocos
+string readFile(Driver d, int k) {
+    cout << "BLA" << endl;
+    fstream fs(d.getDiskName());
+    string fileContent = "";
+    string buffer;
+    while (fat[k] != -1) {
+        fs.seekg(ROOT + k*BLOCKSIZE, ios::beg);
+        getline (fs, buffer);
+        fileContent += buffer;
+        k = fat[k];
+        // Testar seek pra trás (qdo chegar no EOF) ---> funcionou, depois pesquisar mais, qdo pode dar problema?
+    }
+    fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Lê o bloco final (fat -1)
+    getline (fs, buffer, '@');
+    fileContent += buffer;
+    fs.close();
+    return fileContent;
+    // descontar os @@@@@@@@@
 }
