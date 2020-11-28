@@ -182,11 +182,11 @@ void accessedAtUpdater(int nFat, Driver d) {
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
 
-    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
     istringstream iss(bloco);
 
-    int jump = 4; // Diferencia local da data de arquivo e diretorio
-    if (bloco[0] == '\"') jump = 5;
+    // int jump = 4; // Diferencia local da data de arquivo e diretorio
+    // if (bloco[0] == '\"') jump = 5;
 
     for (int j = 0; j < 4; j++) { // Pega o inicio e grava em um buffer inicio
         getline(iss, token, '|');

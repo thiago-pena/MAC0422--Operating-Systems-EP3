@@ -32,7 +32,6 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         string arquivo; string linha; string palavra;
         string token1; string token2; string token3;
         string token4; string token5; string token6;
-        int lFinal;
         ifstream inFile;
 
         inFile.open(nomeArq);
@@ -96,9 +95,9 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         fat[0] = -1;
         for (int i = 1; i < NUMBLOCKS; i++) fat[i] = 0;
 
-        // para registro de data https://linux.die.net/man/3/localtime
-        time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
+        // // para registro de data https://linux.die.net/man/3/localtime
+        // time_t t = time(NULL);
+        // struct tm tm = *localtime(&t);
 
         unsigned long long dataInt = datainfo();
         // fprintf(fp,"root/|0|%lld|%lld|%lld|root/|0|\n", dataInt, dataInt, dataInt);
@@ -113,7 +112,7 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         for (int i = 0; i < BLOCKSIZE - 1; i++)
             s += "@";
         for (int i = 1; i < NUMBLOCKS; i++) {
-            fprintf(fp, s.c_str());
+            fprintf(fp, "%s", s.c_str());
             fprintf(fp, "\n");
         }
 
@@ -213,6 +212,7 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
       }
       return true;
     }
+    return false; // by Pena -> remover warning
 }
 
 void Driver::ListDir(string absoluteDirName)
@@ -266,7 +266,7 @@ void Driver::listener(int nFat)
 
 void Driver::finder(string absoluteDirName, string file)
 {
-    int nFat, l;
+    int nFat;
     string bloco, token, lastC;
     bool achou = false;
 
@@ -469,14 +469,14 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     saveFsm();
 }
 
-int Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
+void Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
 {
     string dirName;
     string token;
     string absolutePathName;
     string bloco, blocoP, newBlocoP, lastC;
 
-    int pLength, tLength, nFat, nFat2, l;
+    int pLength, tLength, nFat, nFat2;
 
     absoluteDirName += "/"; //cambiarra para ler um vazio
 
@@ -524,7 +524,6 @@ void Driver::remover(int nFat, bool LowLevelFormat)
   int newFat, l;
   string bloco, bloco2, token, lastC;
   ifstream disk(diskName);
-  bool isFile = false;
 
   getline (disk, bloco); //Pula freespace e FAT
   getline (disk, bloco);
@@ -568,7 +567,6 @@ void Driver::remover(int nFat, bool LowLevelFormat)
 string Driver::metaRemover(string bloco, string name)
 {
     string newBloco, token;
-    int l;
     bloco += "||";
 
     istringstream iss(bloco);
@@ -646,7 +644,6 @@ int Driver::cdDir(string bloco, string dirName)
       return 0;
     }
     string token;
-    int nFat;
 
     bloco += "|";
     istringstream iss(bloco);
@@ -662,6 +659,7 @@ int Driver::cdDir(string bloco, string dirName)
       accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
       return nFat;
     }
+    return -1; // by Pena (remover warning)
 }
 
 string Driver::getDiskName()
@@ -825,7 +823,7 @@ void Driver::timeUpdater(int nFat, int pos)
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
 
-    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
     istringstream iss(bloco);
 
     for (int j = 0; j < pos; j++) { // Pega o inicio e grava em um buffer inicio

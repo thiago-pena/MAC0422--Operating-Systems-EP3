@@ -74,7 +74,7 @@ class Driver {
     // Imprime informação e conteúdo de arquivo
     void ImprimeArquivo(string bloco, bool isInit);
     // Remove pasta usando...
-    int rmDir(string absoluteDirName, bool LowLevelFormat);
+    void rmDir(string absoluteDirName, bool LowLevelFormat);
     // Cria um diretorio no caminho especificado, caso for chamado com flag
     // isFile funciona como touch e cria/atualiza arquivo.
     void mkDirAndTouch(string absoluteDirName, bool isFile);
