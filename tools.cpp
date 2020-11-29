@@ -33,7 +33,8 @@ string datainfoString()
 // Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
 string intToString(int i)
 {
-    if (i < 0) return "-0001";
+    if (i == -1) return "-0001";
+    if (i == -2) return "-0002";
     int j = i, numDigitos = 0;
     while (j > 0) {
         j /= 10;
@@ -59,13 +60,23 @@ int nextFit(int b)
     while (k < NUMBLOCKS && fsm[k] != 0)
         k++;
     if (k >= NUMBLOCKS) { // chegou ao fim, procurar algum anterior a b
-        k = 0;
-        while (k < b && fsm[k] != 0)
-            k++;
+        k = b;
+        while (k >= 0 && fsm[k] != 0)
+            k--;
     }
-    if (k == b) {
-        cout << "[ERRO] Não há espaço livre no disco." << endl;
+    if (k <= 0) {
+        cout << "[ERRO] Não há espaço livre no disco. (k = " << k << ")" << endl;
         exit(1);
     }
     return k;
+}
+
+// Recebe um inteiro k, indicando o bloco de início de um arquivo no disco e
+// marca como livres no vetor fsm[] as posições do arquivo dadas pelo vetor
+// fat[].
+void cleanFsmFile(int k) {
+    for (int i = k; i >= 0 && fsm[i] == 1; i = fat[i]) {
+        fsm[i] = 0;
+        cout << "\t\t\t[P] cleanFsmFile >>> fsm[" << i << "] == 0" << endl;
+    }
 }

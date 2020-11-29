@@ -14,28 +14,6 @@ typedef struct arquivo arq;
 
 extern bool mountedFS;
 
-struct arquivo { // Estrutura de arquivo
-    string name;
-    int localFAT;
-    int size;
-    unsigned long long createdAt;
-    unsigned long long updatedAt;
-    unsigned long long accessedAt;
-    string insideDirName;
-    vector<string> content;
-};
-
-struct diretorio { // Estrutura de diretório
-    string name;
-    int localFAT;
-    unsigned long long createdAt;
-    unsigned long long updatedAt;
-    unsigned long long accessedAt;
-    string dotdotBar; // "../" diretorio Pai
-    vector<string> dotBar; // "./" diretórios filhos
-    vector<string> arqPont; // arquivos filhos
-};
-
 class Driver {
   private:
     char *diskName;
@@ -62,6 +40,15 @@ class Driver {
     string metaRemover(string bloco, string name);
     // Lê informações de um bloco para o ls
     void listener(int nFat);
+    // Recebe um inteiro k representando um bloco de início de um arquivo ou
+    // diretório e retorna uma string com o conteúdo de todos os seus blocos
+    string readFile(int k);
+    // Recebe um Driver, uma string s a ser inserida no disco e um inteiro k
+    // representando um bloco de início ou -1 se for um arquivo novo. Escreve a
+    // string s no disco alocando os
+    // blocos conforme necessário (livres se o bloco k está livre, caso contrário,
+    // ajusta os blocos utilizados conforme necessidade.
+    void writeFile(string s, int k);
   public:
     Driver();
     ~Driver();
@@ -78,7 +65,6 @@ class Driver {
     // Cria um diretorio no caminho especificado, caso for chamado com flag
     // isFile funciona como touch e cria/atualiza arquivo.
     void mkDirAndTouch(string absoluteDirName, bool isFile);
-    void mkDirAndTouch2(string absoluteDirName, bool isFile);
     // cp origem destino: cria dentro do sistema de arquivos simulado uma cópia do arquivo
     // origem que está em algum sistema de arquivos real dentro do seu computador. No sistema de
     // arquivos simulado a cópia de origem será salva em destino. Tanto origem quanto destino

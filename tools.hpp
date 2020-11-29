@@ -45,4 +45,9 @@ int firstFit();
 // de um bloco inicial b >= 0
 int nextFit(int b);
 
+// Recebe um inteiro k, indicando o bloco de início de um arquivo no disco e
+// marca como livres no vetor fsm[] as posições do arquivo dadas pelo vetor
+// fat[].
+void cleanFsmFile(int k);
+
 #endif

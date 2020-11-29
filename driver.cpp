@@ -79,8 +79,8 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
         //Cria FAT registro
         string fatStr = "";
         fatStr += "-0001|";
-        for (int i = 0; i < NUMBLOCKS - 2; i++) fatStr += "00000|";
-        fatStr += "00000";
+        for (int i = 0; i < NUMBLOCKS - 2; i++) fatStr += "-0002|";
+        fatStr += "-0002";
         for (int i = fatStr.size()%BLOCKSIZE; i < BLOCKSIZE - 1; i++) // completa o último bloco com '@'s
             fatStr += "@";
         fatStr += "\n";
@@ -88,7 +88,7 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 
         //Carrega FAT na memória
         fat[0] = -1;
-        for (int i = 1; i < NUMBLOCKS; i++) fat[i] = 0;
+        for (int i = 1; i < NUMBLOCKS; i++) fat[i] = -2;
 
         // para registro de data https://linux.die.net/man/3/localtime
         // time_t t = time(NULL);
@@ -192,8 +192,8 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
       }
 
       fs.close();
-      fat[nFat2] = 0;
-      fsm[nFat2] = 0;
+      // fat[nFat2] = 0; // problema no mkdir (Pena)
+      // fsm[nFat2] = 0;// problema no mkdir (Pena)
       saveFat();
       saveFsm();
 
@@ -372,7 +372,7 @@ void Driver::df()
 
 void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
 {
-    if (SearchFile(absoluteDirName, 0, false)) return;
+    // if (SearchFile(absoluteDirName, 0, false)) return;
 
     string dirName;
     string token;
@@ -392,6 +392,19 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
         dirName = token + "/";
         getline(iss1, token, '/');
     }
+    cout << endl << "\t[P] Teste 1" << endl;
+    cout << "\t[P] absolutePathName: " << absolutePathName << endl;
+    cout << "\t[P] dirName: " << dirName << endl;
+    cout << "\t[P] token: " << token << endl;
+    /*
+        [P] absolutePathName: root/p1/
+        [P] dirName: p1/
+        [P] token:
+
+        [P] absolutePathName: root/p1/p2/
+        [P] dirName: p2/
+        [P] token:
+    */
     // separa caminho de local final.
     pLength = absolutePathName.length();
     tLength = dirName.length();
@@ -399,35 +412,52 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     if (isFile) dirName = dirName.substr(0, tLength - 1);
     nFat = absolutePath(absolutePathName);
 
-    ifstream disk(diskName);
-    getline (disk, bloco); //Pula freespace e FAT
-    getline (disk, bloco);
+    cout << endl << "\t[P] Teste 2" << endl;
+    cout << "\t[P] absolutePathName: " << absolutePathName << endl;
+    cout << "\t[P] dirName: " << dirName << endl;
+    cout << "\t[P] token: " << token << endl;
+    /*
+        [P] absolutePathName: root/
+        [P] dirName: p1/
+        [P] token:
 
-    for (int i = 0; i <= nFat; i++) getline (disk, bloco);
-    bloco += "|";
-    istringstream iss2(bloco);
+        [P] absolutePathName: root/p1/
+    	[P] dirName: p2/
+    	[P] token:
+    */
 
-    getline(iss2, token, '|');
-    while (token[0] != '@') {
-        bInit += token + "|";
-        getline(iss2, token, '|');
-    }
-    bInit += dirName + "|";
+    // ifstream disk(diskName);
     freeNFat = firstFit();
-    bInit += to_string(freeNFat) + "|";
+    fsm[freeNFat] = 1;
+    bloco = readFile(nFat);
+    bloco += dirName + "|";
+    bloco += to_string(freeNFat) + "|";
 
-    if (bInit.size() < BLOCKSIZE) {
-        while (bInit.size() < BLOCKSIZE - 1)
-            bInit += "@"; // completa o espaço desperdiçado com "@"
-    }
+    // bInit = bloco;
+    // cout << bInit << endl;
+    // bInit += dirName + "|";
+    // freeNFat = firstFit();
+    // bInit += to_string(freeNFat) + "|";
+    // cout << bInit << endl;
 
+    // if (bInit.size() < BLOCKSIZE) {
+    //     while (bInit.size() < BLOCKSIZE - 1)
+    //         bInit += "@"; // completa o espaço desperdiçado com "@"
+    // }
+    //
+    // cout << "\t[P]bloco: "<< bloco << endl;
+    cout << "[P] freeNFat: " << freeNFat << endl;
+    cout << "[P] nFat: " << nFat << endl;
+    writeFile(bloco, nFat); // reescreve pasta pai
     fstream fs(diskName);
-    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
-    bloco.erase(0, BLOCKSIZE - 1);
-    fs << bInit;
+    // fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+    // bloco.erase(0, BLOCKSIZE - 1);
+    cout << "\t[P]bloco: "<< bloco << endl;
+
+    // fs << bInit;
 
     fs.seekg(ROOT + freeNFat*BLOCKSIZE, ios::beg);
-    istringstream iss3(bInit);
+    istringstream iss3(bloco);
     string createdAt = datainfoString();
     string updatedAt = datainfoString();
     string accessedAt = datainfoString();
@@ -450,118 +480,25 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
         string newBloco = dirName + "|" + to_string(freeNFat);
         newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
         newBloco += "|" + insideDirName + "|" + insideDirNameFat + "|";
-        if (newBloco.size() < BLOCKSIZE) {
-            while (newBloco.size() < BLOCKSIZE - 1)
-                newBloco += "@"; // completa o espaço desperdiçado com "@"
-        }
-        fs << newBloco;
+        // if (newBloco.size() < BLOCKSIZE) {
+        //     while (newBloco.size() < BLOCKSIZE - 1)
+        //         newBloco += "@"; // completa o espaço desperdiçado com "@"
+        // }
+        cout << "[P] newBloco: " << newBloco << endl;
+        cout << "\t\t[P] nFat: " << nFat << ", fsm[nFat]: " << fsm[nFat] << endl;
+        cout << "\t\t[P] freeNFat: " << freeNFat << ", fsm[freeNFat]: " << fsm[freeNFat] << endl;
+        writeFile(newBloco, freeNFat);
+        cout << "\t\t[P] nFat: " << nFat << ", fsm[nFat]: " << fsm[nFat] << endl;
+        cout << "\t\t[P] freeNFat: " << freeNFat << ", fsm[freeNFat]: " << fsm[freeNFat] << endl;
+        // fs << newBloco; // comentado temporariamente (Pena)
     }
 
-    disk.close();
+    // disk.close();
     accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
-    fat[freeNFat] = -1;
-    fsm[freeNFat] = 1;
-    // saveFat();
-    // saveFsm();
-}
-
-void Driver::mkDirAndTouch2(string absoluteDirName, bool isFile)
-{
-    if (SearchFile(absoluteDirName, 0, false)) return;
-
-    string dirName;
-    string token;
-    string absolutePathName;
-    string bloco;
-    string bInit;
-
-    int pLength, tLength, nFat, freeNFat;
-    if (absoluteDirName[absoluteDirName.size() - 1] != '/')
-        absoluteDirName += "/";
-    istringstream iss1(absoluteDirName);
-
-    //////////////////////////////////////////
-
-    //////////////////////////////////////////
-
-    // procura pelo nome do arquivo ou diretório
-    getline(iss1, token, '/');
-    while (!token.empty()) { // (Pena) pega o último diretório e o nome da pasta/arquivo (no token)
-        absolutePathName += token + "/";
-        dirName = token + "/";
-        getline(iss1, token, '/');
-    }
-    // separa caminho de local final.
-    pLength = absolutePathName.length();
-    tLength = dirName.length();
-    absolutePathName = absolutePathName.substr(0, pLength - tLength);
-    if (isFile) dirName = dirName.substr(0, tLength - 1);
-    nFat = absolutePath(absolutePathName);
-
-    ifstream disk(diskName);
-    getline (disk, bloco); //Pula freespace e FAT
-    getline (disk, bloco);
-
-    for (int i = 0; i <= nFat; i++) getline (disk, bloco);
-    bloco += "|";
-    istringstream iss2(bloco);
-
-    getline(iss2, token, '|');
-    while (token[0] != '@') {
-        bInit += token + "|";
-        getline(iss2, token, '|');
-    }
-    bInit += dirName + "|";
-    freeNFat = firstFit();
-    bInit += to_string(freeNFat) + "|";
-
-    if (bInit.size() < BLOCKSIZE) {
-        while (bInit.size() < BLOCKSIZE - 1)
-            bInit += "@"; // completa o espaço desperdiçado com "@"
-    }
-
-    fstream fs(diskName);
-    fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
-    bloco.erase(0, BLOCKSIZE - 1);
-    fs << bInit;
-
-    fs.seekg(ROOT + freeNFat*BLOCKSIZE, ios::beg);
-    istringstream iss3(bInit);
-    string createdAt = datainfoString();
-    string updatedAt = datainfoString();
-    string accessedAt = datainfoString();
-
-    getline(iss3, token, '|');
-    string insideDirName = token;
-    getline(iss3, token, '|');
-    string insideDirNameFat =  token;
-    if(isFile) {
-        string size = "0";
-        string newFile = dirName + "|" + to_string(freeNFat) + "|" + size;
-        newFile += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
-        newFile += "|" + insideDirName + "|" + insideDirNameFat + "|";
-        if (newFile.size() < BLOCKSIZE) {
-            while (newFile.size() < BLOCKSIZE - 1)
-                newFile += "@"; // completa o espaço desperdiçado com "@"
-        }
-        fs << newFile;
-    } else {
-        string newBloco = dirName + "|" + to_string(freeNFat);
-        newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
-        newBloco += "|" + insideDirName + "|" + insideDirNameFat + "|";
-        if (newBloco.size() < BLOCKSIZE) {
-            while (newBloco.size() < BLOCKSIZE - 1)
-                newBloco += "@"; // completa o espaço desperdiçado com "@"
-        }
-        fs << newBloco;
-    }
-
-    disk.close();
-    accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
-    fat[freeNFat] = -1;
-    fsm[freeNFat] = 1;
-    // saveFat();
-    // saveFsm();
+    // fat[freeNFat] = -1;
+    // fsm[freeNFat] = 1;
+    saveFat();
+    saveFsm();
 }
 
 int Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
@@ -655,8 +592,8 @@ void Driver::remover(int nFat, bool LowLevelFormat)
       fs << bloco2;
       fs.close();
   }
-  fat[nFat] = 0;
-  fsm[nFat] = 0;
+  // fat[nFat] = 0; // Problema com mkdir (Pena)
+  // fsm[nFat] = 0; // Problema com mkdir (Pena)
   saveFat();
   saveFsm();
 }
@@ -780,6 +717,11 @@ void Driver::copy(string origem, string destino)
     ifstream arqOrigem(origem);
     fstream fs(diskName);
 
+    // quebra destino em:
+        // pastas[]
+        // nomeDestino
+    //
+
     if (!arqOrigem.is_open()) {
         cout << "[ERRO] Não foi possível abrir o arquivo " << origem << endl;
         return;
@@ -857,7 +799,7 @@ void Driver::saveFat()
 {
     fstream fs(diskName);
     fs.seekg(FATPOS, ios::beg); // Seek FAT
-    string fat_string = intToString(fat[0]);;
+    string fat_string = intToString(fat[0]);
     for (int i = 1; i < NUMBLOCKS; i++)
         fat_string += "|" + intToString(fat[i]);
     fs << fat_string;
@@ -921,4 +863,58 @@ void Driver::timeUpdater(int nFat, int pos)
     fstream fs(diskName);
     fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
     fs << bInit;
+}
+
+
+
+// Recebe um inteiro k representando um bloco de início de um arquivo ou
+// diretório e retorna uma string com o conteúdo de todos os seus blocos
+string Driver::readFile(int k) {
+    fstream fs(diskName);
+    string fileContent = "";
+    string buffer;
+    while (fat[k] != -1) {
+        fs.seekg(ROOT + k*BLOCKSIZE, ios::beg);
+        getline (fs, buffer);
+        fileContent += buffer;
+        k = fat[k];
+    }
+    fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Lê o bloco final (fat -1)
+    getline (fs, buffer, '@');
+    fileContent += buffer;
+    fs.close();
+    return fileContent;
+}
+
+// Recebe um Driver, uma string s a ser inserida no disco e um inteiro k
+// representando um bloco de início ou -1 se for um arquivo novo. Escreve a
+// string s no disco alocando os
+// blocos conforme necessário (livres se o bloco k está livre, caso contrário,
+// ajusta os blocos utilizados conforme necessidade.
+void Driver::writeFile(string s, int k) {
+    cleanFsmFile(k);
+    fstream fs(diskName);
+    cout << "\t\t[P] k: " << k << ", fsm[k]: " << fsm[k] << ", fsm[0]: " << fsm[0] << endl;
+    if (k == -1) k = firstFit();
+    while (s.size() > BLOCKSIZE - 1) {
+        fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Seek base do bloco k
+        fs << s.substr(0, BLOCKSIZE - 1);
+        s.erase(0, BLOCKSIZE - 1);
+        fsm[k] = 1;
+        cout << "\t\t[P] k: " << k << ", fsm[k]: " << fsm[k] << ", fsm[0]: " << fsm[0] << endl;
+        int kAnt = k;
+        k = nextFit(k);
+        fat[kAnt] = k;
+    }
+    cout << "\t\t[P] k: " << k << ", fsm[k]: " << fsm[k] << ", fsm[0]: " << fsm[0] << endl;
+    fs.seekg(ROOT + k*BLOCKSIZE, ios::beg);
+    if (s.size() < BLOCKSIZE) {
+        while (s.size() < BLOCKSIZE - 1)
+            s += "@";
+    }
+    fs << s;
+    fs.close();
+    fsm[k] = 1;
+    fat[k] = -1;
+    cout << "\t\t[P] k: " << k << ", fsm[k]: " << fsm[k] << ", fsm[0]: " << fsm[0] << endl;
 }

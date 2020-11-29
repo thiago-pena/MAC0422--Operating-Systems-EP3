@@ -21,9 +21,9 @@ void mount(FILE *fp, const char *arg1);
 void saveFat2(Driver *d);
 // Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
 void saveFsm2(Driver *d);
-void cleanFsmFile(int k);
-string readFile(Driver *d, int k);
-void writeFile(Driver *d, string s, int k);
+void cleanFsmFile2(int k);
+string readFile2(Driver *d, int k);
+void writeFile2(Driver *d, string s, int k);
 void accessedAtUpdater(int nFat, Driver *d);
 void lowLevelFormat(Driver *d);
 
@@ -80,12 +80,8 @@ int main() {
             driver->mkDirAndTouch(arg1, 0);
             cout << "3" << endl;
         }
-        else if (strcmp(c, "mkdir2") == 0) {
-            driver->mkDirAndTouch2(arg1, 0);
-            cout << "3b" << endl;
-        }
         else if (strcmp(c, "cat2") == 0) {
-            string s = readFile(driver, atoi(arg1));
+            string s = readFile2(driver, atoi(arg1));
             cout << "\t[DEBUG] " << s << endl;
         }
         // rmdir diretorio
@@ -160,11 +156,15 @@ int main() {
             saveFsm2(driver);
         }
         else if (strcmp(c, "writeNewFile") == 0) {
-            writeFile(driver, arg1, -1);
+            writeFile2(driver, arg1, -1);
         }
         else if (strcmp(c, "writeFile") == 0) {
             if (arg1 == NULL || arg2 == NULL) continue;
-            writeFile(driver, arg1, atoi(arg2));
+            writeFile2(driver, arg1, atoi(arg2));
+        }
+        else if (strcmp(c, "readFile") == 0) {
+            if (arg1 == NULL) continue;
+            cout << readFile2(driver, atoi(arg1)) << endl;
         }
         else if (strcmp(c, "format") == 0) {
             lowLevelFormat(driver);
@@ -238,8 +238,7 @@ void accessedAtUpdater(int nFat, Driver *d) {
 // Recebe um Driver e um inteiro k representando um bloco de início de um
 // arquivo ou diretório e retorna uma string com o conteúdo de todos os seus
 // blocos
-string readFile(Driver *d, int k) {
-    cout << "BLA" << endl;
+string readFile2(Driver *d, int k) {
     fstream fs(d->getDiskName());
     string fileContent = "";
     string buffer;
@@ -261,7 +260,7 @@ string readFile(Driver *d, int k) {
 // Recebe um inteiro k, indicando o bloco de início de um arquivo no disco e
 // marca como livres no vetor fsm[] as posições do arquivo dadas pelo vetor
 // fat[].
-void cleanFsmFile(int k) {
+void cleanFsmFile2(int k) {
     for (int i = k; i >= 0 && fsm[i] == 1; i = fat[i])
         fsm[i] = 0;
 }
@@ -271,10 +270,11 @@ void cleanFsmFile(int k) {
 // string s no disco alocando os
 // blocos conforme necessário (livres se o bloco k está livre, caso contrário,
 // ajusta os blocos utilizados conforme necessidade.
-void writeFile(Driver *d, string s, int k) {
-    cleanFsmFile(k);
+void writeFile2(Driver *d, string s, int k) {
+    cleanFsmFile2(k);
     fstream fs(d->getDiskName());
     if (k == -1) k = firstFit();
+    cout << "\t\t[P] fsm[0]: " << fsm[0] << endl;
     while (s.size() > BLOCKSIZE - 1) {
         fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Seek base do bloco k
         fs << s.substr(0, BLOCKSIZE - 1);
@@ -284,6 +284,7 @@ void writeFile(Driver *d, string s, int k) {
         k = nextFit(k);
         fat[kAnt] = k;
     }
+    cout << "\t\t[P] fsm[0]: " << fsm[0] << endl;
     fs.seekg(ROOT + k*BLOCKSIZE, ios::beg);
     if (s.size() < BLOCKSIZE) {
         while (s.size() < BLOCKSIZE - 1)
@@ -293,6 +294,7 @@ void writeFile(Driver *d, string s, int k) {
     fs.close();
     fsm[k] = 1;
     fat[k] = -1;
+    cout << "\t\t[P] fsm[0]: " << fsm[0] << endl;
 }
 
 void lowLevelFormat(Driver *d) {
