@@ -4,11 +4,15 @@
 bitmap: NUMBLOCKS 80 = 80 caracteres
     Base: 0
     Limite do bloco final: (1 + NUMBLOCKS/BLOCKSIZE)*BLOCKSIZE - 1 = (1 + 80/100)*100 - 1 = 99
+    Quantidade de blocos utilizados: 1 + NUMBLOCKS/BLOCKSIZE
 
 fat: 6*NUMBLOCKS - 1 = 6*80 - 1 = 479 caracteres
 (1 + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE - 1 = (1 + (6*80)/100)*100  - 1 = (1 + 480/100)*100 - 1 = 499
     Base: (1 + NUMBLOCKS/BLOCKSIZE)*BLOCKSIZE = (1 + 80/100)*100 = 100
     Limite do bloco final: (2 + NUMBLOCKS/BLOCKSIZE + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE
+    Quantidade de blocos utilizados: (1 + (6*NUMBLOCKS)/BLOCKSIZE)
 
 root:
     Base: (2 + NUMBLOCKS/BLOCKSIZE + (6*NUMBLOCKS)/BLOCKSIZE)*BLOCKSIZE = (2 + 80/100 + (6*80)/100)*100 = (2 + 4)*100 = 600
+    Quantidade de blocos úteis: NUMBLOCKS_UTEIS = NUMBLOCKS - (1 + NUMBLOCKS/BLOCKSIZE) - (1 + (6*NUMBLOCKS)/BLOCKSIZE)
+        NUMBLOCKS_UTEIS = NUMBLOCKS - NUMBLOCKS/BLOCKSIZE) - (6*NUMBLOCKS)/BLOCKSIZE) - 2

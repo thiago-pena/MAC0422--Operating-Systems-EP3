@@ -18,11 +18,13 @@
 
 void mount(FILE *fp, const char *arg1);
 // Escreve o conteúdo da FAT da memória para o disco
-void saveFat2(Driver d);
+void saveFat2(Driver *d);
 // Escreve o conteúdo do Gerenciamento de Espaço Livre da memória para o disco
-void saveFsm2(Driver d);
-string readFile(Driver d, int k);
-void accessedAtUpdater(int nFat, Driver d);
+void saveFsm2(Driver *d);
+void cleanFsmFile(int k);
+string readFile(Driver *d, int k);
+void writeFile(Driver *d, string s, int k);
+void accessedAtUpdater(int nFat, Driver *d);
 
 int fat[NUMBLOCKS];
 int fsm[NUMBLOCKS]; // Free Space Management
@@ -30,7 +32,7 @@ bool mountedFS = false;
 
 int main() {
     char prompt[MAXLEN];
-    Driver driver; // inicializa o driver
+    Driver *driver; // inicializa o driver
 
     using_history();
     strcpy(prompt, "[ep3] $ ");
@@ -53,13 +55,14 @@ int main() {
         // mount arquivo
         if (strcmp(c, "mount") == 0) {
             if (!mountedFS) {
+                driver = new Driver(); // inicializa o driver
                 FILE *fp;
 
                 if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
                     fclose (fp);
-                    driver.mount(arg1, 1);
+                    driver->mount(arg1, 1);
                 } else {
-                    driver.mount(arg1, 0);
+                    driver->mount(arg1, 0);
                 }
                 mountedFS = true;
             }
@@ -69,15 +72,15 @@ int main() {
         }
         // cp origem destino
         else if (strcmp(c, "cp") == 0) {
-            driver.copy(arg1, arg2);
+            driver->copy(arg1, arg2);
         }
         // mkdir diretorio
         else if (strcmp(c, "mkdir") == 0) {
-            driver.mkDirAndTouch(arg1, 0);
+            driver->mkDirAndTouch(arg1, 0);
             cout << "3" << endl;
         }
         else if (strcmp(c, "mkdir2") == 0) {
-            driver.mkDirAndTouch2(arg1, 0);
+            driver->mkDirAndTouch2(arg1, 0);
             cout << "3b" << endl;
         }
         else if (strcmp(c, "cat2") == 0) {
@@ -86,43 +89,43 @@ int main() {
         }
         // rmdir diretorio
         else if (strcmp(c, "rmdir") == 0) {
-            driver.rmDir(arg1, LOWLEVELFORMAT);
+            driver->rmDir(arg1, LOWLEVELFORMAT);
             cout << "4" << endl;
         }
         // cat arquivo
         else if (strcmp(c, "cat") == 0) {
-            driver.SearchFile(arg1, 0, LOWLEVELFORMAT);
+            driver->SearchFile(arg1, 0, LOWLEVELFORMAT);
             cout << "5" << endl;
         }
         // touch arquivo
         else if (strcmp(c, "touch") == 0) {
-            driver.mkDirAndTouch(arg1,1);
+            driver->mkDirAndTouch(arg1,1);
             cout << "6" << endl;
         }
         // rm arquivo
         else if (strcmp(c, "rm") == 0) {
-            driver.SearchFile(arg1, 1, LOWLEVELFORMAT);
+            driver->SearchFile(arg1, 1, LOWLEVELFORMAT);
             cout << "7" << endl;
         }
         // ls diretorio
         else if (strcmp(c, "ls") == 0) {
-            driver.ListDir(arg1);
+            driver->ListDir(arg1);
             cout << "8" << endl;
         }
         // find diretorio arquivo
         else if (strcmp(c, "find") == 0) {
-            driver.finder(arg1, arg2);
+            driver->finder(arg1, arg2);
             cout << "9" << endl;
         }
         // df
         else if (strcmp(c, "df") == 0) {
-            driver.df();
+            driver->df();
             cout << "10" << endl;
         }
         // umount
         else if (strcmp(c, "umount") == 0) {
             if (DEBUG) cout << "\t[DEBUG] comando umount" << endl;
-            if (mountedFS) driver.umount();
+            if (mountedFS) driver->umount();
             mountedFS = false;
 
             // dar free? ou preparar para poder montar outro arquivo
@@ -133,20 +136,33 @@ int main() {
         }
         else if (strcmp(c, "fat") == 0) {
             for (int i = 0; i < NUMBLOCKS; i++)
-                cout << fat[i] << " ";
+                cout << i << "\t";
+            cout << endl;
+            for (int i = 0; i < NUMBLOCKS; i++)
+                cout << fat[i] << "\t";
             cout << endl;
         }
         else if (strcmp(c, "fsm") == 0) {
             for (int i = 0; i < NUMBLOCKS; i++)
-                cout << fsm[i] << " ";
+                cout << i << "\t";
+            cout << endl;
+            for (int i = 0; i < NUMBLOCKS; i++)
+                cout << fsm[i] << "\t";
             cout << endl;
         }
         else if (strcmp(c, "saveFat") == 0) {
             saveFat2(driver);
-            // driver.saveFat();
+            cout << "Fim save fat" << endl;
+            // driver->saveFat();
         }
         else if (strcmp(c, "saveFsm") == 0) {
             saveFsm2(driver);
+        }
+        else if (strcmp(c, "writeNewFile") == 0) {
+            writeFile(driver, arg1, -1);
+        }
+        else if (strcmp(c, "writeFile") == 0) {
+            writeFile(driver, arg1, atoi(arg2));
         }
         else if (strcmp(c, "accessedAtUpdater") == 0) {
             accessedAtUpdater(atoi(arg1), driver);
@@ -160,8 +176,8 @@ int main() {
 }
 
 
-void saveFat2(Driver d) {
-    fstream fs(d.getDiskName());
+void saveFat2(Driver *d) {
+    fstream fs(d->getDiskName());
     fs.seekg(FATPOS, ios::beg); // Seek FAT
     string fat_string = intToString(fat[0]);;
     for (int i = 1; i < NUMBLOCKS; i++)
@@ -169,10 +185,11 @@ void saveFat2(Driver d) {
     fs << fat_string;
     fs.close();
     cout << "FAT foi atualizada no disco." << endl;
+    return;
 }
 
-void saveFsm2(Driver d) {
-    fstream fs(d.getDiskName());
+void saveFsm2(Driver *d) {
+    fstream fs(d->getDiskName());
     fs.seekg(BITMAP, ios::beg); // Seek BITMAP
     string fsm_string;
     for (int i = 0; i < NUMBLOCKS; i++)
@@ -182,8 +199,8 @@ void saveFsm2(Driver d) {
     cout << "FSM foi atualizada no disco." << endl;
 }
 
-void accessedAtUpdater(int nFat, Driver d) {
-    ifstream disk(d.getDiskName());
+void accessedAtUpdater(int nFat, Driver *d) {
+    ifstream disk(d->getDiskName());
     string token;
     string bloco;
     string bInit; string bEnd;
@@ -192,11 +209,11 @@ void accessedAtUpdater(int nFat, Driver d) {
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
 
-    for (size_t i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+    for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
     istringstream iss(bloco);
 
-    int jump = 4; // Diferencia local da data de arquivo e diretorio
-    if (bloco[0] == '\"') jump = 5;
+    // int jump = 4; // Diferencia local da data de arquivo e diretorio
+    // if (bloco[0] == '\"') jump = 5;
 
     for (int j = 0; j < 4; j++) { // Pega o inicio e grava em um buffer inicio
         getline(iss, token, '|');
@@ -208,7 +225,7 @@ void accessedAtUpdater(int nFat, Driver d) {
     bInit += token + "|" + bEnd; // Concatena com o buffer do fim do bloco
     disk.close();
 
-    fstream fs(d.getDiskName());
+    fstream fs(d->getDiskName());
     fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
     fs << bInit;
 }
@@ -216,9 +233,9 @@ void accessedAtUpdater(int nFat, Driver d) {
 // Recebe um Driver e um inteiro k representando um bloco de início de um
 // arquivo ou diretório e retorna uma string com o conteúdo de todos os seus
 // blocos
-string readFile(Driver d, int k) {
+string readFile(Driver *d, int k) {
     cout << "BLA" << endl;
-    fstream fs(d.getDiskName());
+    fstream fs(d->getDiskName());
     string fileContent = "";
     string buffer;
     while (fat[k] != -1) {
@@ -234,4 +251,41 @@ string readFile(Driver d, int k) {
     fs.close();
     return fileContent;
     // descontar os @@@@@@@@@
+}
+
+// Recebe um inteiro k, indicando o bloco de início de um arquivo no disco e
+// marca como livres no vetor fsm[] as posições do arquivo dadas pelo vetor
+// fat[].
+void cleanFsmFile(int k) {
+    for (int i = k; i >= 0 && fsm[i] == 1; i = fat[i])
+        fsm[i] = 0;
+}
+
+// Recebe um Driver, uma string s a ser inserida no disco e um inteiro k
+// representando um bloco de início ou -1 se for um arquivo novo. Escreve a
+// string s no disco alocando os
+// blocos conforme necessário (livres se o bloco k está livre, caso contrário,
+// ajusta os blocos utilizados conforme necessidade.
+void writeFile(Driver *d, string s, int k) {
+    cleanFsmFile(k);
+    fstream fs(d->getDiskName());
+    if (k == -1) k = firstFit();
+    while (s.size() > BLOCKSIZE - 1) {
+        fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Seek base do bloco k
+        fs << s.substr(0, BLOCKSIZE - 1);
+        s.erase(0, BLOCKSIZE - 1);
+        fsm[k] = 1;
+        int kAnt = k;
+        k = nextFit(k);
+        fat[kAnt] = k;
+    }
+    fs.seekg(ROOT + k*BLOCKSIZE, ios::beg);
+    if (s.size() < BLOCKSIZE) {
+        while (s.size() < BLOCKSIZE - 1)
+            s += "@";
+    }
+    fs << s;
+    fs.close();
+    fsm[k] = 1;
+    fat[k] = -1;
 }

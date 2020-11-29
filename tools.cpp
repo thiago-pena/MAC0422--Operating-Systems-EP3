@@ -43,3 +43,29 @@ string intToString(int i)
     s << setw(5) << setfill('0') << i;
     return s.str();
 }
+
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre
+int firstFit()
+{
+    return nextFit(0);
+}
+
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre, mas partindo
+// de um bloco inicial b >= 0. Se não houver bloco livre após b, procura um
+// bloco livre partindo do início.
+int nextFit(int b)
+{
+    int k = b;
+    while (k < NUMBLOCKS && fsm[k] != 0)
+        k++;
+    if (k >= NUMBLOCKS) { // chegou ao fim, procurar algum anterior a b
+        k = 0;
+        while (k < b && fsm[k] != 0)
+            k++;
+    }
+    if (k == b) {
+        cout << "[ERRO] Não há espaço livre no disco." << endl;
+        exit(1);
+    }
+    return k;
+}

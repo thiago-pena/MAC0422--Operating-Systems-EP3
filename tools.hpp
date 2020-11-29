@@ -38,6 +38,11 @@ string datainfoString();
 // Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
 string intToString(int i);
 
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre
+int firstFit();
 
+// Retorna o primeiro bloco livre do gerenciamento de espaço livre, mas partindo
+// de um bloco inicial b >= 0
+int nextFit(int b);
 
 #endif
