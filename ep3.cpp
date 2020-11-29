@@ -25,6 +25,7 @@ void cleanFsmFile(int k);
 string readFile(Driver *d, int k);
 void writeFile(Driver *d, string s, int k);
 void accessedAtUpdater(int nFat, Driver *d);
+void lowLevelFormat(Driver *d);
 
 int fat[NUMBLOCKS];
 int fsm[NUMBLOCKS]; // Free Space Management
@@ -162,7 +163,11 @@ int main() {
             writeFile(driver, arg1, -1);
         }
         else if (strcmp(c, "writeFile") == 0) {
+            if (arg1 == NULL || arg2 == NULL) continue;
             writeFile(driver, arg1, atoi(arg2));
+        }
+        else if (strcmp(c, "format") == 0) {
+            lowLevelFormat(driver);
         }
         else if (strcmp(c, "accessedAtUpdater") == 0) {
             accessedAtUpdater(atoi(arg1), driver);
@@ -288,4 +293,19 @@ void writeFile(Driver *d, string s, int k) {
     fs.close();
     fsm[k] = 1;
     fat[k] = -1;
+}
+
+void lowLevelFormat(Driver *d) {
+    fstream fs(d->getDiskName());
+    string s = "";
+    for (int i = 0; i < BLOCKSIZE - 1; i++)
+        s += "@";
+    for (int i = 0; i < NUMBLOCKS; i++) {
+        if (fsm[i] == 0) {
+            fat[i] = 0;
+            fs.seekg(ROOT + i*BLOCKSIZE, ios::beg);
+            fs << s;
+        }
+    }
+    fs.close();
 }

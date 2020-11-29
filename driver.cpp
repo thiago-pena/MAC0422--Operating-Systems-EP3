@@ -43,13 +43,8 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
 
         // Gerencimanto de Espaço Livre
         getline(inFile, linha);
-        cout << "Teste FSM\n";
-        cout << linha << endl;
-        cout << linha[0] << endl;
-        cout << linha[2] << endl;
         for (int i = 0; i < NUMBLOCKS; i++)
             fsm[i] = linha[i] - '0';
-        cout << "FIM teste\n";
 
         // FAT______________________________________________________________
         getline(inFile, linha);
@@ -59,13 +54,6 @@ void Driver::mount(char *nomeArq, bool existe) //Inicializa o parser sobre um ar
             fat[i] = atoi(palavra.c_str());
         }
 
-
-
-        if (DEBUG) {
-          printf("memory FAT: [");
-          for (int i = 0; i < NUMBLOCKS; i++) printf(" %02d", fat[i]);
-          printf("]\n");
-        }
         inFile.close();
         if (DEBUG) std::cout << " Terminou mount" << '\n';
 
