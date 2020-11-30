@@ -273,11 +273,14 @@ void Driver::listener(int nFat)
     }
 }
 
-void Driver::finder(string absoluteDirName, string file)
+bool Driver::finder(string absoluteDirName, string file)
 {
     int nFat;
     string bloco, token, lastC;
     bool achou = false;
+
+    if (absoluteDirName[absoluteDirName.size() - 1] != '/')
+        absoluteDirName += "/";
 
     nFat = absolutePath(absoluteDirName);
     // bloco = loadBlock(nFat);
@@ -291,17 +294,22 @@ void Driver::finder(string absoluteDirName, string file)
         // caso nome do arquivo é encontrado imprime o nome dele
         // concatenado com o caminho.
         if (token == file) {
-            cout << absoluteDirName << "/" << file << '\n';
+            cout << absoluteDirName << file << '\n';
             achou = true;
         }
-        else { // Verifica se é uma pasta, se for, chama
-
+        else { // Verifica se é uma pasta, se for, chama finder recursivamente
+            cout << endl << "[finder] Teste absoluteDirName: " << absoluteDirName << endl;
+            cout << "[finder] Teste nome da pasta/arquivo: " << token << endl << endl;
+            if (token[token.size() - 1] == '/') {
+                cout << "chamou recursivo" << endl;
+                achou = finder(absoluteDirName + token, file) || achou;
+            }
         }
         getline(iss, token, '|');
         getline(iss, token, '|');
     }
     // Caso não achou imprime essa informação.
-    if (!achou) cout << "find: \'"<< file <<"\': Arquivo ou diretório não encontrado" << '\n';
+    return achou;
 }
 
 void Driver::ImprimeArquivo(string bloco, bool isInit)
@@ -349,10 +357,8 @@ void Driver::df()
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
     for (int i = 0; i < FATSIZE; i++) {
-
         // verifica no vetor free se bloco está sendo usado ou free.
         if (fsm[i] == 1) {
-
             // acrescenta um tamanho de bloco no número de waste
             // para subtrair depois
             nWaste += BLOCKSIZE - 1;
@@ -380,17 +386,16 @@ void Driver::df()
         }
     }
     // imprime informação.
-    std::cout << "------------------------------------------------------" << '\n';
-    std::cout << "df Info:" << '\n';
-    std::cout << "  Quantidade de diretórios: " << nDir << '\n';
-    std::cout << "  Quantidade de arquivos: " << nFil << '\n';
-    std::cout << "  Espaço livre: " << nFree << '\n';
-    std::cout << "  Espaço desperdiçado: " << nWaste << '\n';
+    cout << "------------------------------------------------------" << '\n';
+    cout << "df Info:" << '\n';
+    cout << "  Quantidade de diretórios: " << nDir << '\n';
+    cout << "  Quantidade de arquivos: " << nFil << '\n';
+    cout << "  Espaço livre: " << nFree << '\n';
+    cout << "  Espaço desperdiçado: " << nWaste << '\n';
 }
 
 void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
 {
-    // if (SearchFile(absoluteDirName, 0, false)) return; // para cat, só cria arquivo se não existir
     if (isFile && SearchFile(absoluteDirName, 0, false)) return; // para cat, só cria arquivo se não existir
     cout << "mkDirAndTouch -> passou SearchFile" << endl;
     string dirName;

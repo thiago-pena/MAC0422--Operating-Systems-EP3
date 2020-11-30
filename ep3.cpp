@@ -115,7 +115,8 @@ int main() {
         }
         // find diretorio arquivo
         else if (strcmp(c, "find") == 0) {
-            driver->finder(arg1, arg2);
+            bool achou = driver->finder(arg1, arg2);
+            if (!achou) cout << "find: \'" << arg2 << "\': Arquivo ou diretório não encontrado" << '\n';
             cout << "9" << endl;
         }
         // df

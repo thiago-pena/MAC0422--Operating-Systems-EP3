@@ -77,8 +77,8 @@ class Driver {
     void copy(string origem, string destino); // EM PROCESSO (Pena)
     // Aplica ls em um diretório listando seus diretorio e arquivos abaixo.
     void ListDir(string absoluteDirName);
-    // Verefica ser um determinado arquivo está dentro de uma pasta.
-    void finder(string absoluteDirName, string file);
+    // Verifica se um determinado arquivo está dentro de uma pasta.
+    bool finder(string absoluteDirName, string file);
     // imprime na tela informações seguindo o enunciado.
     void df();
 
