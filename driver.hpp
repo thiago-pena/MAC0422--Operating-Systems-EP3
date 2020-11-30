@@ -30,7 +30,7 @@ class Driver {
     void timeUpdater(int nFat, int pos);
     // Recebe número de fat e carrega bloco
     string loadBlock(int nFat);
-    // Percorre caminho de diretório e devolve número fat do destino
+    // Percorre caminho de diretório e devolve número fat da pasta pai do arquivo/pasta
     int absolutePath(string dirPath);
     // Ajuda recursivamente absolutePath
     int cdDir(string bloco, string dirName);
