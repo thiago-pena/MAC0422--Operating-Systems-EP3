@@ -36,7 +36,8 @@ class Driver {
     int cdDir(string bloco, string dirName);
     // Remover um bloco
     void remover(int nFat, bool LowLevelFormat);
-    // Remove o metadado de um arquivo ou diretorio dentro do mesmo.
+    // Recebe uma string com um diretório e o nome de um diretório a ser
+    // removido. Retorna a string do diretório original com a remoção feita.
     string metaRemover(string bloco, string name);
     // Lê informações de um bloco para o ls
     void listener(int nFat);
@@ -50,6 +51,9 @@ class Driver {
     // ajusta os blocos utilizados conforme necessidade.
     void writeFile(string s, int k);
   public:
+      // Para todos os blocos que estiverem livres em fsm, limpa os blocos e
+      // reverte o fat[] para -2.
+      void lowLevelFormat2(); // tornar privado
     Driver();
     ~Driver();
     // Monta um arquivo como estrutura de disco
@@ -61,7 +65,7 @@ class Driver {
     // Imprime informação e conteúdo de arquivo
     void ImprimeArquivo(string bloco, bool isInit);
     // Remove pasta usando...
-    int rmDir(string absoluteDirName, bool LowLevelFormat);
+    void rmDir(string absoluteDirName, bool LowLevelFormat);
     // Cria um diretorio no caminho especificado, caso for chamado com flag
     // isFile funciona como touch e cria/atualiza arquivo.
     void mkDirAndTouch(string absoluteDirName, bool isFile);

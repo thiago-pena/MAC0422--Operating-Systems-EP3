@@ -66,6 +66,10 @@ int main() {
                     driver->mount(arg1, 0);
                 }
                 mountedFS = true;
+                // Atualiza prompt com o nome do sistema de arquivos
+                strcpy(prompt, "[");
+                strcat(prompt, arg1);
+                strcat(prompt, "] $ ");
             }
             else
                 cout << "Já há um sistema de arquivos montado." << endl;
@@ -87,6 +91,7 @@ int main() {
         // rmdir diretorio
         else if (strcmp(c, "rmdir") == 0) {
             driver->rmDir(arg1, LOWLEVELFORMAT);
+            if (LOWLEVELFORMAT) driver->lowLevelFormat2();
             cout << "4" << endl;
         }
         // cat arquivo
@@ -167,7 +172,7 @@ int main() {
             cout << readFile2(driver, atoi(arg1)) << endl;
         }
         else if (strcmp(c, "format") == 0) {
-            lowLevelFormat(driver);
+            driver->lowLevelFormat2();
         }
         else if (strcmp(c, "accessedAtUpdater") == 0) {
             accessedAtUpdater(atoi(arg1), driver);
@@ -304,7 +309,7 @@ void lowLevelFormat(Driver *d) {
         s += "@";
     for (int i = 0; i < NUMBLOCKS; i++) {
         if (fsm[i] == 0) {
-            fat[i] = 0;
+            fat[i] = -2;
             fs.seekg(ROOT + i*BLOCKSIZE, ios::beg);
             fs << s;
         }
