@@ -11,10 +11,15 @@
     // ofstream -> write
 #include <vector>
     // vetor da STL
+#include <chrono>
+    // Medição do tempo
 #include "tools.hpp"
     // Ferramentas simples
 #include "driver.hpp"
     // Parser & Writer
+using namespace std;
+using namespace std::chrono;
+
 
 void mount(FILE *fp, const char *arg1);
 // Escreve o conteúdo da FAT da memória para o disco
@@ -31,6 +36,7 @@ int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS;
 
 int main() {
+    auto start = high_resolution_clock::now();
     char prompt[MAXLEN];
     Driver *driver; // inicializa o driver
     mountedFS = false;
@@ -154,6 +160,10 @@ int main() {
             cout << "Comando não reconhecido." << endl;
         if (mountedFS && LOWLEVELFORMAT) driver->lowLevelFormat2();
     }
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Time taken by function: "
+         << duration.count() << " microseconds" << endl;
 }
 
 

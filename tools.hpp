@@ -26,6 +26,7 @@
 
 using namespace std;
 
+
 extern int fat[NUMBLOCKS];
 extern int fsm[NUMBLOCKS];
 
