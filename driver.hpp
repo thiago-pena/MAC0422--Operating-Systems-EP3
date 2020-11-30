@@ -5,19 +5,14 @@
 #include <fstream>
 #include <sstream>
 #include <string.h>
-#include <vector>
 
 #include "tools.hpp"
-
-typedef struct diretorio dir;
-typedef struct arquivo arq;
 
 extern bool mountedFS;
 
 class Driver {
   private:
     char *diskName;
-    dir *dirStruct(string linha);
     // Atualiza a FAT.
     void saveFat();
     // Atualiza o registro de espaço livre.
@@ -35,7 +30,7 @@ class Driver {
     // Ajuda recursivamente absolutePath
     int cdDir(string bloco, string dirName);
     // Remover um bloco
-    void remover(int nFat, bool LowLevelFormat);
+    void remover(int nFat, bool LowLevelFormat, string absoluteDirName);
     // Recebe uma string com um diretório e o nome de um diretório a ser
     // removido. Retorna a string do diretório original com a remoção feita.
     string metaRemover(string bloco, string name);
@@ -61,7 +56,7 @@ class Driver {
     // Desmonta arquivo aberto;
     void umount();
     // procura arquivo por nome ( Busca linear )
-    bool SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat);
+    bool SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat, bool printContent);
     // Imprime informação e conteúdo de arquivo
     void ImprimeArquivo(string bloco, bool isInit);
     // Remove pasta usando...

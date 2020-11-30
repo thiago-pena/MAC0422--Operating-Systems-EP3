@@ -88,8 +88,6 @@ int nextFit(int b)
 // marca como livres no vetor fsm[] as posições do arquivo dadas pelo vetor
 // fat[].
 void cleanFsmFile(int k) {
-    for (int i = k; i >= 0 && fsm[i] == 1; i = fat[i]) {
+    for (int i = k; i >= 0 && fsm[i] == 1; i = fat[i])
         fsm[i] = 0;
-        cout << "\t\t\t[P] cleanFsmFile >>> fsm[" << i << "] == 0" << endl;
-    }
 }
