@@ -35,6 +35,10 @@ unsigned long long datainfo();
 // Coleta informações de data e transforma em uma string concatenada
 string datainfoString();
 
+// Recebe uma string de uma data e retorna uma string com formato
+// dd/mm/aaaa hh:mm:ss
+string dateToStr(string date);
+
 // Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
 string intToString(int i);
 

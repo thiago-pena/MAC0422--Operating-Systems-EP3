@@ -91,7 +91,6 @@ int main() {
         // rmdir diretorio
         else if (strcmp(c, "rmdir") == 0) {
             driver->rmDir(arg1, LOWLEVELFORMAT);
-            if (LOWLEVELFORMAT) driver->lowLevelFormat2();
             cout << "4" << endl;
         }
         // cat arquivo
@@ -101,7 +100,7 @@ int main() {
         }
         // touch arquivo
         else if (strcmp(c, "touch") == 0) {
-            driver->mkDirAndTouch(arg1,1);
+            driver->mkDirAndTouch(arg1, 1);
             cout << "6" << endl;
         }
         // rm arquivo
@@ -182,6 +181,7 @@ int main() {
         }
         else
             cout << "Comando não reconhecido." << endl;
+        if (LOWLEVELFORMAT) driver->lowLevelFormat2();
     }
 }
 

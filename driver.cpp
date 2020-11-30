@@ -126,6 +126,7 @@ void Driver::umount()
 
 bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat)
 {
+    cout << ">>>>>>>>>>>>> Marcador SearchFile" << endl;
   string fileName;
   string token;
   string absolutePathName;
@@ -152,14 +153,20 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
 
   // Acha Fat da pasta pai e seu bloco
   nFat = absolutePath(absolutePathName);
-  bloco = loadBlock(nFat);
+  // bloco = loadBlock(nFat);
+  bloco = readFile(nFat);
   bloco += "|";
+  cout << ">>>>>>>>>>>>> Marcador SearchFile 2" << endl;
+  cout << "bloco: " << bloco << endl;
+  // bloco: d3/|3|20201130110640|20201130110640|20201130112855|root/|0||
+  bloco += "@";
 
   // procura arquivo
   istringstream iss(bloco);
   for (int i = 0; i <= METADIR; i++) getline(iss, token, '|');
   while (token != fileName && token[0] != '@') getline(iss, token, '|');
 
+  cout << ">>>>>>>>>>>>> Marcador SearchFile 3" << endl;
   if (token == fileName) {
       getline(iss, token, '|');
 
@@ -171,41 +178,46 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
   nFat2 = atoi(token.c_str()); //Fat do arquivo de fato
   accessedAtUpdater(nFat2, true);
 
+  cout << ">>>>>>>>>>>>> Marcador SearchFile 4" << endl;
   // Caso flag remove remove arquivo
   if (remove) {
-      fstream fs(diskName);
-      bloco.erase(0, BLOCKSIZE - 1);
-      bloco = loadBlock(nFat);
+      // fstream fs(diskName);
+      // bloco.erase(0, BLOCKSIZE - 1);
+      // bloco = loadBlock(nFat);
+      bloco = readFile(nFat);
       bloco = metaRemover(bloco, fileName);
-      fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
-      fs << bloco;
+      // fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
+      // fs << bloco;
+      writeFile(bloco, nFat);
 
-      if (LowLevelFormat) { // Para efeitos de DEBUG remove com "zeros"
-          //bloco2 = loadBlock(nFat2);
-          //bloco2.erase(0, BLOCKSIZE - 1);
-          if (bloco2.size() < BLOCKSIZE) {
-              while (bloco2.size() < BLOCKSIZE - 1)
-                  bloco2 += "@"; // completa o espaço desperdiçado com "@"
-          }
-          fs.seekg(ROOT + nFat2*BLOCKSIZE, ios::beg);
-          fs << bloco2;
-      }
+      // if (LowLevelFormat) { // Para efeitos de DEBUG remove com "zeros"
+      //     //bloco2 = loadBlock(nFat2);
+      //     //bloco2.erase(0, BLOCKSIZE - 1);
+      //     if (bloco2.size() < BLOCKSIZE) {
+      //         while (bloco2.size() < BLOCKSIZE - 1)
+      //             bloco2 += "@"; // completa o espaço desperdiçado com "@"
+      //     }
+      //     fs.seekg(ROOT + nFat2*BLOCKSIZE, ios::beg);
+      //     fs << bloco2;
+      // }
 
-      fs.close();
+      // fs.close();
       // fat[nFat2] = 0;
-      fsm[nFat2] = 0;
+      // fsm[nFat2] = 0;
+      cleanFsmFile(nFat2);
       saveFat();
       saveFsm();
-      return true; // (Pena) Remover warning
+      return true; // Remover warning
   // Carrega arquivo e imprime info.
   } else {
-      bloco2 = loadBlock(nFat2);
+      // bloco2 = loadBlock(nFat2);
+      bloco2 = readFile(nFat2);
       ImprimeArquivo(bloco2, true);// Começa a chamar pela impressão
-      while (fat[nFat2] != -1) {
-          nFat2 = fat[nFat2];
-          bloco2 = loadBlock(nFat2);
-          ImprimeArquivo(bloco2, false);
-      }
+      // while (fat[nFat2] != -1) {
+      //     nFat2 = fat[nFat2];
+      //     bloco2 = loadBlock(nFat2);
+      //     ImprimeArquivo(bloco2, false);
+      // }
       return true;
     }
 }
@@ -217,7 +229,8 @@ void Driver::ListDir(string absoluteDirName)
 
     // carrega bloco do diretorio seguindo o caminho.
     nFat = absolutePath(absoluteDirName);
-    bloco = loadBlock(nFat);
+    // bloco = loadBlock(nFat);
+    bloco = readFile(nFat);
     bloco += "|";
 
     // segue procurando pastas e arquivos
@@ -235,7 +248,8 @@ void Driver::listener(int nFat)
 {
     string bloco, token, lastC;
     int l;
-    bloco = loadBlock(nFat);
+    // bloco = loadBlock(nFat);
+    bloco = readFile(nFat);
     istringstream iss(bloco);
 
     getline(iss, token, '|');
@@ -248,26 +262,27 @@ void Driver::listener(int nFat)
         getline(iss, token, '|');
         getline(iss, token, '|');
         getline(iss, token, '|');
-        std::cout << " Modificado em: " << token << '\n';
+        std::cout << " Modificado em: " << dateToStr(token) << '\n';
     } else {
         getline(iss, token, '|');
         getline(iss, token, '|');
         std::cout << " Tamanho: " << token;
         getline(iss, token, '|');
         getline(iss, token, '|');
-        std::cout << " Modificado em: " << token << '\n' ;
+        std::cout << " Modificado em: " << dateToStr(token) << '\n' ;
     }
 }
 
 void Driver::finder(string absoluteDirName, string file)
 {
     int nFat;
-    // int l;
     string bloco, token, lastC;
     bool achou = false;
 
     nFat = absolutePath(absoluteDirName);
-    bloco = loadBlock(nFat);
+    // bloco = loadBlock(nFat);
+    bloco = readFile(nFat);
+    bloco += "@"; // Pena teste
     bloco += "|";
 
     istringstream iss(bloco);
@@ -276,14 +291,17 @@ void Driver::finder(string absoluteDirName, string file)
         // caso nome do arquivo é encontrado imprime o nome dele
         // concatenado com o caminho.
         if (token == file) {
-            std::cout << absoluteDirName << file<< '\n';
+            cout << absoluteDirName << "/" << file << '\n';
             achou = true;
+        }
+        else { // Verifica se é uma pasta, se for, chama
+
         }
         getline(iss, token, '|');
         getline(iss, token, '|');
     }
     // Caso não achou imprime essa informação.
-    if (!achou) std::cout << "find: \'"<< file <<"\': Arquivo ou diretório não encontrado" << '\n';
+    if (!achou) cout << "find: \'"<< file <<"\': Arquivo ou diretório não encontrado" << '\n';
 }
 
 void Driver::ImprimeArquivo(string bloco, bool isInit)
@@ -372,8 +390,9 @@ void Driver::df()
 
 void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
 {
-    // if (SearchFile(absoluteDirName, 0, false)) return;
-
+    // if (SearchFile(absoluteDirName, 0, false)) return; // para cat, só cria arquivo se não existir
+    if (isFile && SearchFile(absoluteDirName, 0, false)) return; // para cat, só cria arquivo se não existir
+    cout << "mkDirAndTouch -> passou SearchFile" << endl;
     string dirName;
     string token;
     string absolutePathName;
@@ -424,11 +443,12 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
         string newFile = dirName + "|" + to_string(freeNFat) + "|" + size;
         newFile += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
         newFile += "|" + insideDirName + "|" + insideDirNameFat + "|";
-        if (newFile.size() < BLOCKSIZE) {
-            while (newFile.size() < BLOCKSIZE - 1)
-                newFile += "@"; // completa o espaço desperdiçado com "@"
-        }
-        fs << newFile;
+        // if (newFile.size() < BLOCKSIZE) {
+        //     while (newFile.size() < BLOCKSIZE - 1)
+        //         newFile += "@"; // completa o espaço desperdiçado com "@"
+        // }
+        writeFile(newFile, freeNFat);
+        // fs << newFile;
     } else {
         string newBloco = dirName + "|" + to_string(freeNFat);
         newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;

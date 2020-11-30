@@ -30,6 +30,19 @@ string datainfoString()
     return dataS;
 }
 
+// Recebe um int representando uma data e retorna uma string com formato
+// dd/mm/aaaa hh:mm:ss
+string dateToStr(string date) {
+    string d, m, y, h, mi, s;
+    y = date.substr(0, 4);
+    m = date.substr(4, 2);
+    d = date.substr(6, 2);
+    h = date.substr(8, 2);
+    mi = date.substr(10, 2);
+    s = date.substr(12, 2);
+    return d + "/" + m + "/" + y + " " + h + ":" + mi + ":" + s;
+}
+
 // Recebe um inteiro e retorna uma string representando o inteiro com 5 dígitos.
 string intToString(int i)
 {
