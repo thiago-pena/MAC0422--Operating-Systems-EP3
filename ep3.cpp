@@ -36,7 +36,6 @@ int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS;
 
 int main() {
-    auto start = high_resolution_clock::now();
     char prompt[MAXLEN];
     Driver *driver; // inicializa o driver
     mountedFS = false;
@@ -82,13 +81,21 @@ int main() {
         }
         else if (!mountedFS) cout << "Monte um sistema de arquivos primeiro." << endl;
         else if (strcmp(c, "cp") == 0) {
+            auto start = high_resolution_clock::now();
             driver->copy(arg1, arg2);
+            auto stop = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<microseconds>(stop - start);
+            if(PRINT_RUNTIME) cout << elapsed_time.count() << " microsegundos (cp)" << endl;
         }
         else if (strcmp(c, "mkdir") == 0) {
             driver->mkDirAndTouch(arg1, 0);
         }
         else if (strcmp(c, "rmdir") == 0) {
+            auto start = high_resolution_clock::now();
             driver->rmDir(arg1, LOWLEVELFORMAT);
+            auto stop = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<microseconds>(stop - start);
+            if(PRINT_RUNTIME) cout << elapsed_time.count() << " microsegundos (rmdir)" << endl;
         }
         else if (strcmp(c, "cat") == 0) {
             driver->SearchFile(arg1, 0, LOWLEVELFORMAT, true);
@@ -97,7 +104,11 @@ int main() {
             driver->mkDirAndTouch(arg1, 1);
         }
         else if (strcmp(c, "rm") == 0) {
+            auto start = high_resolution_clock::now();
             driver->SearchFile(arg1, 1, LOWLEVELFORMAT, false);
+            auto stop = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<microseconds>(stop - start);
+            if(PRINT_RUNTIME) cout << elapsed_time.count() << " microsegundos (rm)" << endl;
         }
         else if (strcmp(c, "ls") == 0) {
             if (arg1 != NULL) driver->ListDir(arg1);
@@ -160,10 +171,6 @@ int main() {
             cout << "Comando não reconhecido." << endl;
         if (mountedFS && LOWLEVELFORMAT) driver->lowLevelFormat2();
     }
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    cout << "Time taken by function: "
-         << duration.count() << " microseconds" << endl;
 }
 
 
