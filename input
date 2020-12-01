@@ -1,5 +1,0 @@
-mount fs
-cp /home/pena/arquivo1MB.txt root/arquivo1MB
-rm root/arquivo1MB
-umount
-sai

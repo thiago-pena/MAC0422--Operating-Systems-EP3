@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -pedantic -g -O0
 RM = rm
 
 ep3: ep3.o driver.o tools.o

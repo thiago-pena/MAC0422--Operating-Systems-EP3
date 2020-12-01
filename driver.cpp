@@ -154,7 +154,7 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
       getline(iss, token, '|');
 
   } else {
-      cout << "cat: " << fileName <<": Arquivo ou diretório não encontrado" << '\n';
+      if (DEBUG) cout << "\t[DEBUG] cat: " << fileName <<": Arquivo ou diretório não encontrado" << '\n';
       return false;
   }
 
