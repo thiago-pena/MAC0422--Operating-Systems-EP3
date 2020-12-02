@@ -1,4 +1,4 @@
 Executar os comandos:
 $ sh script1-gera-arquivos-cp.sh
 $ sh script2-gera-sistemas-de-arquivos.sh
-$ sh script2-gera-sistemas-de-arquivos.sh > resultados
+$ sh script3-gerar-resultados.sh > resultados
