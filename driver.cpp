@@ -57,7 +57,7 @@ void Driver::mount(char *nomeArq, bool existe)
     } else { //Cria arquivo.txt caso ele não exista
         FILE *fp;
         fp = fopen (nomeArq, "w");
-        if(DEBUG) printf("Arquivo %s criado.\n", nomeArq);
+        if (DEBUG) printf("Arquivo %s criado.\n", nomeArq);
         if (fp == NULL) {
             printf("Falha na criação de %s\n", nomeArq);
             fclose (fp);
@@ -485,6 +485,46 @@ void Driver::rmDir(string absoluteDirName, bool LowLevelFormat)
     saveFsm();
 }
 
+void Driver::rm(string absolutePathName)
+{
+    string fileName;
+    string token;
+    string bloco, blocoP, newBlocoP, lastC;
+    int pLength, tLength, nFat, nFat2;
+    if (DEBUG) cout << "\t[DEBUG] rm(" << absolutePathName << ")" << endl;
+
+    absolutePathName += "/"; // gambiarra para ler um vazio
+    istringstream iss1(absolutePathName);
+    getline(iss1, token, '/'); //procura pelo nome do arquivo ou diretório
+    while (!token.empty()) {
+        fileName = token;
+        getline(iss1, token, '/');
+    }
+
+    if (DEBUG) cout << "\t[DEBUG] rm | fileName: " << fileName << endl;
+
+    if (DEBUG) cout << "\t[DEBUG] rm | absolutePathName: " << absolutePathName << endl;
+    pLength = absolutePathName.length();
+    tLength = fileName.length();
+    absolutePathName = absolutePathName.substr(0, pLength - tLength - 1);
+    if (DEBUG) cout << "\t[DEBUG] rm | absolutePathName: " << absolutePathName << endl;
+
+    nFat2 = absolutePath(absolutePathName); // dir pai
+    if (DEBUG) cout << "\t[DEBUG] rm | check1" << endl;
+
+    // Ajuste bloco diretório pai
+    blocoP = readFile(nFat2);
+    nFat = getFileFat(blocoP, fileName);
+    if (DEBUG) cout << "\t[DEBUG] rm | nFat: " << nFat << endl;
+
+    newBlocoP = metaRemover(blocoP, fileName);
+    if (DEBUG) cout << "\t[DEBUG] rm | newBlocoP: " << newBlocoP << endl;
+    writeFile(newBlocoP, nFat2);
+    removerArq(nFat, absolutePathName + "/" + fileName);
+    saveFat();
+    saveFsm();
+}
+
 void Driver::remover(int nFat, bool LowLevelFormat, string absolutePathName)
 {
   int newFat, l;
@@ -514,6 +554,24 @@ void Driver::remover(int nFat, bool LowLevelFormat, string absolutePathName)
   else cout << absolutePathName << name << " foi removido." << endl;
 }
 
+void Driver::removerArq(int nFat, string filePath)
+{
+  // int newFat, l;
+  // string name, bloco, bloco2, token, lastC;
+  if (DEBUG) cout << "\t[DEBUG] removerArq(" << nFat << ", " << filePath << ")" << endl;
+  cleanFsmFile(nFat);
+  // bloco = readFile(nFat);
+  // bloco += "||";
+  //
+  // istringstream iss(bloco);
+  // getline(iss, token, '|');
+  // name = token;
+  // l = token.length();
+  // lastC = token.substr(l - 1, l);
+
+  cout << filePath << " foi removido." << endl;
+}
+
 string Driver::metaRemover(string bloco, string name)
 {
     string newBloco, token;
@@ -541,11 +599,44 @@ string Driver::metaRemover(string bloco, string name)
     return newBloco;
 }
 
+// Recebe um bloco de um diretório, o nome de um arquivo/pasta, percorre os meta-
+// dados do diretório, retorna o nFat do arquivo/pasta
+int Driver::getFileFat(string bloco, string name)
+{
+    string newBloco, token;
+    bloco += "||";
+
+    if (name.length() > 0 && name[name.length() - 1] == '/')
+        name = name.substr(0, name.length() - 1);
+
+    istringstream iss(bloco);
+    for (int i = 0; i < METADIR; i++) { // Atributos do diretório
+        getline(iss, token, '|');
+    }
+
+    getline(iss, token, '|');
+    while (token != name && token[0] != '@') { // pega todo o restante anterior ao diretório
+        getline(iss, token, '|');
+    }
+    getline(iss, token, '|');
+    return stoi(token);
+    //
+    // // Pula o diretório a ser removido dos metadados
+    // getline(iss, token, '|');
+    // while (!token.empty() && token[0] != '@') { // pega todo o restante posterior ao diretório
+    //     newBloco += token + "|";
+    //     getline(iss, token, '|');
+    // }
+    // return newBloco;
+}
+
 int Driver::absolutePath(string dirPath)
 {
     string dirNext;
     string bloco;
     int nFat;
+
+    if (DEBUG) cout << "\t[DEBUG] absolutePath(" << dirPath << ")" << endl;
 
     dirPath += "/"; // gambiarra para ler um vazio
     istringstream iss1(dirPath);
@@ -620,6 +711,11 @@ void Driver::copy(string origem, string destino)
     string fileName, token, absolutePathName, bloco, bInit;
     int pLength, tLength, nFat;
 
+    if (destino.length() > 0 && destino[destino.length() -1 ] == '/') {
+        cout << "Especifique o nome do arquivo." << endl;
+        return;
+    }
+
     destino += "/";
     istringstream iss1(destino);
 
@@ -629,6 +725,12 @@ void Driver::copy(string origem, string destino)
         absolutePathName += token + "/";
         fileName = token + "/";
         getline(iss1, token, '/');
+    }
+
+    if (DEBUG) cout << "\t[DEBUG] fileName: " << fileName << endl;
+    if (fileName + "/" == destino) {
+        cout << "Especifique o nome do arquivo." << endl;
+        return;
     }
 
     // separa caminho de local final.
@@ -653,6 +755,7 @@ void Driver::copy(string origem, string destino)
 
     // Encontra primeiro bloco livre
     int k = firstFit();
+    if (DEBUG) cout << "\t[DEBUG] k: " << k << endl;
     fsm[k] = 1;
 
     // Reescreve pasta pai
@@ -660,7 +763,9 @@ void Driver::copy(string origem, string destino)
     blocoDir += fileName + "|";
     blocoDir += to_string(k) + "|";
     writeFile(blocoDir, nFat);
+    // if (DEBUG) cout << "\t[DEBUG] blocoDir: " << blocoDir << endl;
 
+    ////////////////////////////////////////////////////////////////////////////
     istringstream iss3(blocoDir);
     getline(iss3, token, '|');
     string insideDirName = token;
@@ -770,7 +875,11 @@ string Driver::readFile(int k) {
         k = fat[k];
     }
     fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Lê o bloco final (fat -1)
-    getline (fs, buffer, '@');
+    getline (fs, buffer);
+    int limite = buffer.find("@", 0);
+    if (limite <= (int)buffer.length())
+        buffer = buffer.substr(0, limite);
+    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
     fileContent += buffer;
     fs.close();
     return fileContent;

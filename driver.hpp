@@ -45,7 +45,16 @@ class Driver {
     // blocos conforme necessário (livres se o bloco k está livre, caso contrário,
     // ajusta os blocos utilizados conforme necessidade.
     void writeFile(string s, int k);
+    // Recebe um nFat e um caminho completo de um arquivo, e limpa fsm[] de
+    // todo o conteúdo do arquivo
+    void removerArq(int nFat, string filePath);
+    // Recebe um bloco de um diretório, o nome de um arquivo/pasta, percorre os meta-
+    // dados do diretório, retorna o nFat do arquivo/pasta
+    int getFileFat(string bloco, string name);
   public:
+      // Recebe o caminho de um arquivo, remove o arquivo, remove-o dos metadados
+      // da pasta mai, atualiza os tempos de acesso no caminho
+      void rm(string absoluteDirName);
       // Para todos os blocos que estiverem livres em fsm, limpa os blocos e
       // reverte o fat[] para -2.
       void lowLevelFormat2(); // tornar privado

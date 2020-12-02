@@ -30,6 +30,8 @@ string readFile2(Driver *d, int k);
 void writeFile2(Driver *d, string s, int k);
 void accessedAtUpdater2(int nFat, Driver *d);
 void lowLevelFormat(Driver *d);
+int fatVal(int i);
+int fsmVal(int i);
 
 int fat[NUMBLOCKS];
 int fsm[NUMBLOCKS]; // Free Space Management
@@ -104,9 +106,16 @@ int main() {
         else if (strcmp(c, "touch") == 0) {
             driver->mkDirAndTouch(arg1, 1);
         }
-        else if (strcmp(c, "rm") == 0) {
+        else if (strcmp(c, "rm_old") == 0) {
             auto start = high_resolution_clock::now();
             driver->SearchFile(arg1, 1, LOWLEVELFORMAT, false);
+            auto stop = high_resolution_clock::now();
+            auto elapsed_time = duration_cast<microseconds>(stop - start);
+            if(PRINT_RUNTIME) cout << elapsed_time.count() << " microsegundos (rm)" << endl;
+        }
+        else if (strcmp(c, "rm") == 0) {
+            auto start = high_resolution_clock::now();
+            driver->rm(arg1);
             auto stop = high_resolution_clock::now();
             auto elapsed_time = duration_cast<microseconds>(stop - start);
             if(PRINT_RUNTIME) cout << elapsed_time.count() << " microsegundos (rm)" << endl;
@@ -167,6 +176,12 @@ int main() {
         }
         else if (strcmp(c, "accessedAtUpdater") == 0) {
             accessedAtUpdater2(atoi(arg1), driver);
+        }
+        else if (strcmp(c, "fatVal") == 0) {
+            cout << "fat[" << arg1 << "]: " << fatVal(atoi(arg1)) << endl;
+        }
+        else if (strcmp(c, "fsmVal") == 0) {
+            cout << "fsm[" << arg1 << "]: " << fsmVal(atoi(arg1)) << endl;
         }
         else
             cout << "Comando não reconhecido." << endl;
@@ -245,7 +260,16 @@ string readFile2(Driver *d, int k) {
         k = fat[k];
     }
     fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Lê o bloco final (fat -1)
-    getline (fs, buffer, '@');
+    // getline (fs, buffer, '@');
+    getline (fs, buffer);
+    int limite = buffer.find("@", 0);
+    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
+    // if (DEBUG) cout << "\t[DEBUG] readline | limite: " << limite << endl;
+    // if (DEBUG) cout << "\t[DEBUG] readline | buffer.length(): " << buffer.length() << endl;
+    if (limite <= (int)buffer.length())
+        buffer = buffer.substr(0, limite);
+    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
+    // if (DEBUG) cout << "\t[DEBUG] -----------------------------" << endl;
     fileContent += buffer;
     fs.close();
     return fileContent;
@@ -293,4 +317,14 @@ void lowLevelFormat(Driver *d) {
         }
     }
     fs.close();
+}
+
+// Retorna o valor de fat de um índice dado como parâmetro
+int fatVal(int i) {
+    return fat[i];
+}
+
+// Retorna o valor de fsm de um índice dado como parâmetro
+int fsmVal(int i) {
+    return fsm[i];
 }

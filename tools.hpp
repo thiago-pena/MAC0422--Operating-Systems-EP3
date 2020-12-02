@@ -13,7 +13,7 @@
 #define DEBUG 0
 #define MAXLENPROMPT 255
 #define NUMBLOCKS 24955 // 99.999.999 bytes
-// #define NUMBLOCKS 100
+// #define NUMBLOCKS 5000
 #define BLOCKSIZE 4000
 // #define BLOCKSIZE 100
 #define BITMAP 0
