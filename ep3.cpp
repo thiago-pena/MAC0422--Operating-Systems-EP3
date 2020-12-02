@@ -36,15 +36,17 @@ int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS;
 
 int main() {
-    char prompt[MAXLEN];
-    Driver *driver; // inicializa o driver
+    // char prompt[MAXLENPROMPT];
+    char *prompt = new char[MAXLENPROMPT];
+    char *strChar;
+    Driver *driver = new Driver(); // inicializa o driver
     mountedFS = false;
     using_history();
     strcpy(prompt, "[ep3] $ ");
     while (true) {
-        char *strChar = readline(prompt);
+        strChar = readline(prompt);
+        if (strcmp(strChar, "\0") == 0) continue;
         add_history(strChar);
-
         char *c = strtok(strChar, " ");
         char *arg1 = strtok(NULL, " ");
         char *arg2 = strtok(NULL, " ");
@@ -58,7 +60,6 @@ int main() {
         }
         if (strcmp(c, "mount") == 0) {
             if (!mountedFS) {
-                driver = new Driver(); // inicializa o driver
                 FILE *fp;
                 if ((fp = fopen (arg1,"r"))) { //Caso o arquivo exista (read)
                     fclose (fp);
@@ -76,7 +77,7 @@ int main() {
                 cout << "Já há um sistema de arquivos montado." << endl;
         }
         else if (strcmp(c, "sai") == 0) {
-            delete driver;
+            free(strChar);
             break;
         }
         else if (!mountedFS) cout << "Monte um sistema de arquivos primeiro." << endl;
@@ -170,7 +171,12 @@ int main() {
         else
             cout << "Comando não reconhecido." << endl;
         if (mountedFS && LOWLEVELFORMAT) driver->lowLevelFormat2();
+        // delete [] strChar;
+        free(strChar);
     }
+    clear_history();
+    delete [] prompt;
+    delete driver;
 }
 
 

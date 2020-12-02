@@ -25,7 +25,9 @@ Driver::~Driver()
 void Driver::mount(char *nomeArq, bool existe)
 {
     if (DEBUG) cout << "\t[DEBUG] Driver inicializado!" << endl;
-    diskName = nomeArq;
+    diskName = (char*)malloc(strlen(nomeArq)*sizeof(char) + 1);
+    // diskName = new char[strlen(nomeArq + 1)];
+    strcpy(diskName, nomeArq);
     if (existe) {
         string arquivo; string linha; string palavra;
         string token1; string token2; string token3;
@@ -89,7 +91,7 @@ void Driver::mount(char *nomeArq, bool existe)
         unsigned long long dataInt = datainfo();
         fprintf(fp, "root/|0|%lld|%lld|%lld|root/|0|", dataInt, dataInt, dataInt);
         int len = strlen("root/|0|20201121084741|20201121084741|20201121084741|root/|0|");
-        for (int i = 0; i < 100 - len - 1; i++)
+        for (int i = 0; i < BLOCKSIZE - len - 1; i++)
             fprintf(fp, "@");
         fprintf(fp, "\n");
 
@@ -109,7 +111,8 @@ void Driver::mount(char *nomeArq, bool existe)
 void Driver::umount()
 {
     cout << "O sistema de arquivos "  << diskName << " foi desmontado." << endl;
-    diskName = nullptr;
+    free(diskName);
+    // diskName = nullptr;
 }
 
 bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat, bool printContent)
@@ -337,7 +340,7 @@ void Driver::df()
 
     getline (disk, bloco); //Pula freespace e FAT
     getline (disk, bloco);
-    for (int i = 0; i < FATSIZE; i++) {
+    for (int i = 0; i < NUMBLOCKS; i++) {
         // verifica no vetor free se bloco está sendo usado ou free.
         if (fsm[i] == 1) {
             // acrescenta um tamanho de bloco no número de waste

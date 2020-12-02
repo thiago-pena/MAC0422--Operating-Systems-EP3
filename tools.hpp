@@ -10,19 +10,18 @@
 #include <math.h>
 #include <time.h>
 
-
 #define DEBUG 0
-#define MAXLEN 255
-#define FATSIZE 20
-
-#define NUMBLOCKS 25000
+#define MAXLENPROMPT 255
+#define NUMBLOCKS 24955 // 99.999.999 bytes
+// #define NUMBLOCKS 100
+#define BLOCKSIZE 4000
+// #define BLOCKSIZE 100
 #define BITMAP 0
 #define FATPOS (1 + NUMBLOCKS/BLOCKSIZE)*BLOCKSIZE
 #define ROOT (2 + NUMBLOCKS/BLOCKSIZE + (6*NUMBLOCKS - 1)/BLOCKSIZE)*BLOCKSIZE
-#define BLOCKSIZE 100
 #define METADIR 7
 #define METAFILE 8
-#define LOWLEVELFORMAT 1
+#define LOWLEVELFORMAT 0
 #define PRINT_RUNTIME 1
 
 using namespace std;

@@ -1,0 +1,4 @@
+mount fs
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB
+umount
+sai

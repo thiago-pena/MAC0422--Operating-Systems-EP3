@@ -1,0 +1,4 @@
+mount fs
+rmdir root/p1
+umount
+sai

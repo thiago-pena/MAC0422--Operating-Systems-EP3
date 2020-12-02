@@ -1,0 +1,8 @@
+mount fs
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-a
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-b
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-c
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-d
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-e
+umount
+sai

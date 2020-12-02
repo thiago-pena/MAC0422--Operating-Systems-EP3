@@ -1,0 +1,38 @@
+mount fs
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-a
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-b
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-c
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-d
+cp ./arquivos_para_cp/arquivo10MB.txt root/arquivo10MB-e
+mkdir root/p1
+mkdir root/p1/p2
+mkdir root/p1/p2/p3
+mkdir root/p1/p2/p3/p4
+mkdir root/p1/p2/p3/p4/p5
+mkdir root/p1/p2/p3/p4/p5/p6
+mkdir root/p1/p2/p3/p4/p5/p6/p7
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25/p26
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25/p26/p27
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25/p26/p27/p28
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25/p26/p27/p28/p29
+mkdir root/p1/p2/p3/p4/p5/p6/p7/p8/p9/p10/p11/p12/p13/p14/p15/p16/p17/p18/p19/p20/p21/p22/p23/p24/p25/p26/p27/p28/p29/p30
+umount
+sai
