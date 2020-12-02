@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # script
+rm fs
 echo Sistema de arquivos vazio
 echo ---------------------- FS vazio \(1 e 4\) ----------------------
 filename='./input_testes/input-itens-1-4'

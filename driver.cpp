@@ -520,7 +520,7 @@ void Driver::rm(string absolutePathName)
     newBlocoP = metaRemover(blocoP, fileName);
     if (DEBUG) cout << "\t[DEBUG] rm | newBlocoP: " << newBlocoP << endl;
     writeFile(newBlocoP, nFat2);
-    removerArq(nFat, absolutePathName + "/" + fileName);
+    removerArq(nFat, absolutePathName + fileName);
     saveFat();
     saveFsm();
 }
