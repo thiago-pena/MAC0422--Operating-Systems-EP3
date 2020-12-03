@@ -20,7 +20,7 @@ NUSP: 6847829
     driver.hpp
     tools.cpp
     tools.hpp
-    
+
 
 2.INSTRUÇÕES___________________________________________________________________
 
@@ -32,14 +32,14 @@ NUSP: 6847829
 
  		stdbool.h
 		unistd.h
-		sys/resource.h>
+		sys/resource.h
 		sys/time.h
 		errno.h
 		unistd.h
 		string.h
 		fstream
 		sstream
-		
+        chrono
 
 
 
@@ -48,33 +48,37 @@ NUSP: 6847829
 
           	Exemplo: ~/dir1/dir2 >$ make
 
-  1.2   Para rodar o binário digitar "./ep3" 
+  1.2   Para rodar o binário digitar "./ep3"
 
           	Exemplo: ~/dir1/dir2 >$ ./ep3
 
-  1.4.1 Inicialmente a necessidade montar um arquivo com o comando mount, caso 
+  1.4.1 Inicialmente a necessidade montar um arquivo com o comando mount, caso
   	 arquivo não exista um novo será criado com o nome oferecido.
 
-        	Exemplo: [ep3] $  mount sistema1 
-        
+        	Exemplo: [ep3] $  mount sistema1
+
   1.4.2 Apos isso, o usuário já pode usar o programa com todas as interações pe-
   	didas no enunciado deste EP. Lembrando somente que este programa neces-
-  	sita do caminhos completos de qualquer diretório ou arquivo bem como a 
-  	direrenciação na escrita dos mesmos. Sendo todo nome terminado com "/"
+  	sita do caminhos completos de qualquer diretório ou arquivo bem como a
+  	diferenciação na escrita dos mesmos. Sendo todo nome terminado com "/"
   	um diretório e todo sem "/" um arquivo.
-  
 
-         	 Exemplo: mkdir root/dir1/
-          
+
+         	 Exemplos: mkdir root/dir1/
+                       rmdir root/dir1
+                       ls root/
+                       cp ./arquivo.txt root/file1
+
         Criará um diretorio chamado dir1/ dentro da pasta root/
+    OBS: Para todas as operações, é necessário referenciar o diretório raiz
+    "/" como root/.
 
-       
+
 3.REFERÊNCIAS__________________________________________________________________
 
    	Várias referências de uso das biblioteca fstream, fstream, assim como diferentes técnicas para manejo de strings
 	inspiradas nos sites:
-	
+
 	https://pt.stackoverflow.com/
 	https://man7.org/
 	https://linux.die.net/
-

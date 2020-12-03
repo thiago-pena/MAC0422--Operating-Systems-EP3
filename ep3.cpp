@@ -1,16 +1,9 @@
-// g++ ep3.cpp -lreadline
 #include <iostream>
 #include <string.h>
-    // strcpy
 #include <readline/readline.h>
-    // readline
 #include <readline/history.h>
-    // add_history
 #include <fstream>
 #include <sstream>
-    // ofstream -> write
-#include <vector>
-    // vetor da STL
 #include <chrono>
     // Medição do tempo
 #include "tools.hpp"
@@ -38,7 +31,6 @@ int fsm[NUMBLOCKS]; // Free Space Management
 bool mountedFS;
 
 int main() {
-    // char prompt[MAXLENPROMPT];
     char *prompt = new char[MAXLENPROMPT];
     char *strChar;
     Driver *driver = new Driver(); // inicializa o driver
@@ -260,16 +252,10 @@ string readFile2(Driver *d, int k) {
         k = fat[k];
     }
     fs.seekg(ROOT + k*BLOCKSIZE, ios::beg); // Lê o bloco final (fat -1)
-    // getline (fs, buffer, '@');
     getline (fs, buffer);
     int limite = buffer.find("@", 0);
-    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
-    // if (DEBUG) cout << "\t[DEBUG] readline | limite: " << limite << endl;
-    // if (DEBUG) cout << "\t[DEBUG] readline | buffer.length(): " << buffer.length() << endl;
     if (limite <= (int)buffer.length())
         buffer = buffer.substr(0, limite);
-    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
-    // if (DEBUG) cout << "\t[DEBUG] -----------------------------" << endl;
     fileContent += buffer;
     fs.close();
     return fileContent;

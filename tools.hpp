@@ -22,7 +22,7 @@
 #define METADIR 7
 #define METAFILE 8
 #define LOWLEVELFORMAT 0
-#define PRINT_RUNTIME 1
+#define PRINT_RUNTIME 0
 
 using namespace std;
 

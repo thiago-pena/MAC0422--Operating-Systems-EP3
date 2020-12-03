@@ -166,45 +166,19 @@ bool Driver::SearchFile(string absoluteDirName, bool remove, bool LowLevelFormat
 
   // Caso flag remove remove arquivo
   if (remove) {
-      // fstream fs(diskName);
-      // bloco.erase(0, BLOCKSIZE - 1);
-      // bloco = loadBlock(nFat);
       bloco = readFile(nFat);
       bloco = metaRemover(bloco, fileName);
-      // fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
-      // fs << bloco;
       writeFile(bloco, nFat);
-
-      // if (LowLevelFormat) { // Para efeitos de DEBUG remove com "zeros"
-      //     //bloco2 = loadBlock(nFat2);
-      //     //bloco2.erase(0, BLOCKSIZE - 1);
-      //     if (bloco2.size() < BLOCKSIZE) {
-      //         while (bloco2.size() < BLOCKSIZE - 1)
-      //             bloco2 += "@"; // completa o espaço desperdiçado com "@"
-      //     }
-      //     fs.seekg(ROOT + nFat2*BLOCKSIZE, ios::beg);
-      //     fs << bloco2;
-      // }
-
-      // fs.close();
-      // fat[nFat2] = 0;
-      // fsm[nFat2] = 0;
       cleanFsmFile(nFat2);
       saveFat();
       saveFsm();
       return true; // Remover warning
   // Carrega arquivo e imprime info.
   } else {
-      // bloco2 = loadBlock(nFat2);
       if (printContent) {
           bloco2 = readFile(nFat2);
           ImprimeArquivo(bloco2, true);// Começa a chamar pela impressão
       }
-      // while (fat[nFat2] != -1) {
-      //     nFat2 = fat[nFat2];
-      //     bloco2 = loadBlock(nFat2);
-      //     ImprimeArquivo(bloco2, false);
-      // }
       return true;
     }
 }
@@ -270,9 +244,8 @@ bool Driver::finder(string absoluteDirName, string file)
         absoluteDirName += "/";
 
     nFat = absolutePath(absoluteDirName);
-    // bloco = loadBlock(nFat);
     bloco = readFile(nFat);
-    bloco += "@"; // Pena teste
+    bloco += "@";
     bloco += "|";
 
     istringstream iss(bloco);
@@ -394,7 +367,7 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
 
     // procura pelo nome do arquivo ou diretório
     getline(iss1, token, '/');
-    while (!token.empty()) { // (Pena) pega o último diretório e o nome da pasta/arquivo (no token)
+    while (!token.empty()) { // Pega o último diretório e o nome da pasta/arquivo (no token)
         absolutePathName += token + "/";
         dirName = token + "/";
         getline(iss1, token, '/');
@@ -405,7 +378,6 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     tLength = dirName.length();
     absolutePathName = absolutePathName.substr(0, pLength - tLength);
     if (isFile) dirName = dirName.substr(0, tLength - 1);
-    ///////////////////////////////////////////////
     nFat = absolutePath(absolutePathName);
 
     freeNFat = firstFit();
@@ -431,12 +403,7 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
         string newFile = dirName + "|" + to_string(freeNFat) + "|" + size;
         newFile += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
         newFile += "|" + insideDirName + "|" + insideDirNameFat + "|";
-        // if (newFile.size() < BLOCKSIZE) {
-        //     while (newFile.size() < BLOCKSIZE - 1)
-        //         newFile += "@"; // completa o espaço desperdiçado com "@"
-        // }
         writeFile(newFile, freeNFat);
-        // fs << newFile;
     } else {
         string newBloco = dirName + "|" + to_string(freeNFat);
         newBloco += "|" + createdAt + "|" + updatedAt + "|" + accessedAt;
@@ -445,7 +412,6 @@ void Driver::mkDirAndTouch(string absoluteDirName, bool isFile)
     }
 
     accessedAtUpdater(nFat, false); // Atualiza tempo de acesso
-    // fat[freeNFat] = -1;
     fsm[freeNFat] = 1;
     saveFat();
     saveFsm();
@@ -500,25 +466,16 @@ void Driver::rm(string absolutePathName)
         fileName = token;
         getline(iss1, token, '/');
     }
-
-    if (DEBUG) cout << "\t[DEBUG] rm | fileName: " << fileName << endl;
-
-    if (DEBUG) cout << "\t[DEBUG] rm | absolutePathName: " << absolutePathName << endl;
     pLength = absolutePathName.length();
     tLength = fileName.length();
     absolutePathName = absolutePathName.substr(0, pLength - tLength - 1);
-    if (DEBUG) cout << "\t[DEBUG] rm | absolutePathName: " << absolutePathName << endl;
-
     nFat2 = absolutePath(absolutePathName); // dir pai
-    if (DEBUG) cout << "\t[DEBUG] rm | check1" << endl;
 
     // Ajuste bloco diretório pai
     blocoP = readFile(nFat2);
     nFat = getFileFat(blocoP, fileName);
-    if (DEBUG) cout << "\t[DEBUG] rm | nFat: " << nFat << endl;
 
     newBlocoP = metaRemover(blocoP, fileName);
-    if (DEBUG) cout << "\t[DEBUG] rm | newBlocoP: " << newBlocoP << endl;
     writeFile(newBlocoP, nFat2);
     removerArq(nFat, absolutePathName + fileName);
     saveFat();
@@ -556,19 +513,8 @@ void Driver::remover(int nFat, bool LowLevelFormat, string absolutePathName)
 
 void Driver::removerArq(int nFat, string filePath)
 {
-  // int newFat, l;
-  // string name, bloco, bloco2, token, lastC;
   if (DEBUG) cout << "\t[DEBUG] removerArq(" << nFat << ", " << filePath << ")" << endl;
   cleanFsmFile(nFat);
-  // bloco = readFile(nFat);
-  // bloco += "||";
-  //
-  // istringstream iss(bloco);
-  // getline(iss, token, '|');
-  // name = token;
-  // l = token.length();
-  // lastC = token.substr(l - 1, l);
-
   cout << filePath << " foi removido." << endl;
 }
 
@@ -620,14 +566,6 @@ int Driver::getFileFat(string bloco, string name)
     }
     getline(iss, token, '|');
     return stoi(token);
-    //
-    // // Pula o diretório a ser removido dos metadados
-    // getline(iss, token, '|');
-    // while (!token.empty() && token[0] != '@') { // pega todo o restante posterior ao diretório
-    //     newBloco += token + "|";
-    //     getline(iss, token, '|');
-    // }
-    // return newBloco;
 }
 
 int Driver::absolutePath(string dirPath)
@@ -677,8 +615,6 @@ int Driver::cdDir(string bloco, string dirName)
       return 0;
     }
     string token;
-    // int nFat;
-
     bloco += "|";
     istringstream iss(bloco);
 
@@ -687,7 +623,7 @@ int Driver::cdDir(string bloco, string dirName)
 
     if (token[0] == '@') {
       std::cout << "ERRO: caminho inválido" << '\n';
-      exit(1); // (Pena) remover warning
+      exit(1);
     } else {
       getline(iss, token, '|');
       int nFat = atoi(token.c_str());
@@ -763,9 +699,7 @@ void Driver::copy(string origem, string destino)
     blocoDir += fileName + "|";
     blocoDir += to_string(k) + "|";
     writeFile(blocoDir, nFat);
-    // if (DEBUG) cout << "\t[DEBUG] blocoDir: " << blocoDir << endl;
 
-    ////////////////////////////////////////////////////////////////////////////
     istringstream iss3(blocoDir);
     getline(iss3, token, '|');
     string insideDirName = token;
@@ -835,11 +769,7 @@ void Driver::timeUpdater(int nFat, int pos)
     string token;
     string bloco;
     string bInit; string bEnd;
-    //disk.open(diskName);
-    // getline (disk, bloco); //Pula freespace e FAT
-    // getline (disk, bloco);
-    //
-    // for (int i = 0; i <= nFat; i++) getline (disk, bloco);// Vai até a linha FAT
+
     bloco = readFile(nFat);
     istringstream iss(bloco);
 
@@ -852,12 +782,7 @@ void Driver::timeUpdater(int nFat, int pos)
     token = datainfoString();
 
     bInit += token + "|" + bEnd; // Concatena com o buffer do fim do bloco
-    // disk.close();
     writeFile(bInit, nFat);
-
-    // fstream fs(diskName);
-    // fs.seekg(ROOT + nFat*BLOCKSIZE, ios::beg);
-    // fs << bInit;
 }
 
 
@@ -879,7 +804,6 @@ string Driver::readFile(int k) {
     int limite = buffer.find("@", 0);
     if (limite <= (int)buffer.length())
         buffer = buffer.substr(0, limite);
-    // if (DEBUG) cout << "\t[DEBUG] readline | buffer: " << buffer << endl;
     fileContent += buffer;
     fs.close();
     return fileContent;
