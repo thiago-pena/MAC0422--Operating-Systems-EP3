@@ -1,0 +1,80 @@
+MAC0422 - Sistemas Operacionais (2020)
+
+EP3 - Segundo Semestre de 2020
+
+Nome: Pedro Fernandes
+NUSP: 5948611
+
+Nome: Thiago Benitez Pena
+NUSP: 6847829
+
+1.CONTEÚDO_____________________________________________________________________
+
+    Conteúdo do arquivo "ep3-pedro.thiago.tar.gz"
+
+    Makefile
+    apresentação.pdf
+    LEIAME
+    ep3.cpp
+    driver.cpp
+    driver.hpp
+    tools.cpp
+    tools.hpp
+    
+
+2.INSTRUÇÕES___________________________________________________________________
+
+  Observações inicias:
+
+          A máquina cujo programa será executado dever ser compatível com
+          as principais funções GNU/Linux em especial as referidas pela
+          definição _GNU_SOURCE e as bibliotecas:
+
+ 		stdbool.h
+		unistd.h
+		sys/resource.h>
+		sys/time.h
+		errno.h
+		unistd.h
+		string.h
+		fstream
+		sstream
+		
+
+
+
+  1.1   Para gerar os códigos binários abrir pasta desempacotada no shell e
+        digitar "make"
+
+          	Exemplo: ~/dir1/dir2 >$ make
+
+  1.2   Para rodar o binário digitar "./ep3" 
+
+          	Exemplo: ~/dir1/dir2 >$ ./ep3
+
+  1.4.1 Inicialmente a necessidade montar um arquivo com o comando mount, caso 
+  	 arquivo não exista um novo será criado com o nome oferecido.
+
+        	Exemplo: [ep3] $  mount sistema1 
+        
+  1.4.2 Apos isso, o usuário já pode usar o programa com todas as interações pe-
+  	didas no enunciado deste EP. Lembrando somente que este programa neces-
+  	sita do caminhos completos de qualquer diretório ou arquivo bem como a 
+  	direrenciação na escrita dos mesmos. Sendo todo nome terminado com "/"
+  	um diretório e todo sem "/" um arquivo.
+  
+
+         	 Exemplo: mkdir root/dir1/
+          
+        Criará um diretorio chamado dir1/ dentro da pasta root/
+
+       
+3.REFERÊNCIAS__________________________________________________________________
+
+   	Várias referências de uso das biblioteca fstream, fstream, assim como diferentes técnicas para manejo de strings
+	inspiradas nos sites:
+	
+	https://pt.stackoverflow.com/
+	https://man7.org/
+	https://linux.die.net/
+
