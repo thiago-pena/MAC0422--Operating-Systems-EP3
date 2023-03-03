@@ -1,14 +1,16 @@
-MAC0422 - Sistemas Operacionais (2020)
+# MAC0422 - Operating Systems / Sistemas Operacionais (2020)
+Undergraduate subject of the Bachelor's Degree in Computer Science at IME-USP.
 
-EP3 - Segundo Semestre de 2020
+View [course description](https://uspdigital.usp.br/jupiterweb/obterDisciplina?nomdis=&sgldis=mac0422).
 
-Nome: Pedro Fernandes
-NUSP: 5948611
+## EP3 - Segundo Semestre de 2020
 
-Nome: Thiago Benitez Pena
-NUSP: 6847829
+Nome | nUSP
+--- | ---
+[Pedro Fernandes](https://github.com/Pedro84skynet) | 5948611
+[Thiago Benitez Pena](https://github.com/thiago-pena) | 6847829
 
-1.CONTEÚDO_____________________________________________________________________
+## 1.CONTEÚDO
 
     Conteúdo do arquivo "ep3-pedro.thiago.tar.gz"
 
@@ -22,7 +24,7 @@ NUSP: 6847829
     tools.hpp
 
 
-2.INSTRUÇÕES___________________________________________________________________
+## 2.INSTRUÇÕES
 
   Observações inicias:
 
@@ -43,21 +45,21 @@ NUSP: 6847829
 
 
 
-  1.1   Para gerar os códigos binários abrir pasta desempacotada no shell e
+  ### 2.1   Para gerar os códigos binários abrir pasta desempacotada no shell e
         digitar "make"
 
           	Exemplo: ~/dir1/dir2 >$ make
 
-  1.2   Para rodar o binário digitar "./ep3"
+  ### 2.2   Para rodar o binário digitar "./ep3"
 
           	Exemplo: ~/dir1/dir2 >$ ./ep3
 
-  1.4.1 Inicialmente a necessidade montar um arquivo com o comando mount, caso
+  #### 2.2.1 Inicialmente a necessidade montar um arquivo com o comando mount, caso
   	 arquivo não exista um novo será criado com o nome oferecido.
 
         	Exemplo: [ep3] $  mount sistema1
 
-  1.4.2 Apos isso, o usuário já pode usar o programa com todas as interações pe-
+  #### 2.2.2 Após isso, o usuário já pode usar o programa com todas as interações pe-
   	didas no enunciado deste EP. Lembrando somente que este programa neces-
   	sita do caminhos completos de qualquer diretório ou arquivo bem como a
   	diferenciação na escrita dos mesmos. Sendo todo nome terminado com "/"
@@ -74,7 +76,7 @@ NUSP: 6847829
     "/" como root/.
 
 
-3.REFERÊNCIAS__________________________________________________________________
+## 3.REFERÊNCIAS
 
    	Várias referências de uso das biblioteca fstream, fstream, assim como diferentes técnicas para manejo de strings
 	inspiradas nos sites:
